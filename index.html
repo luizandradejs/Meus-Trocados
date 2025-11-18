@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Trocados</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+    <button class="menu-toggle" id="menu-toggle">
+        <i class="ph ph-list"></i>
+    </button>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <header class="sidebar-header">
+                <i class="ph ph-wallet"></i>
+                <span>Meus Trocados</span>
+            </header>
+            <nav>
+                <button class="nav-button active" data-target="painel">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Painel</span>
+                </button>
+                <button class="nav-button" data-target="economias">
+                    <i class="ph ph-piggy-bank"></i>
+                    <span>Economias</span>
+                </button>
+                <button class="nav-button" data-target="extrato">
+                    <i class="ph ph-text-align-left"></i>
+                    <span>Extrato</span>
+                </button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <h1 id="page-title">Oi, Colega!</h1>
+                <p id="page-subtitle">Bem-vindo(a) de volta ao seu painel financeiro.</p>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="theme-toggle">
+                        <i class="ph ph-moon"></i>
+                        <i class="ph ph-sun"></i>
+                    </button>
+                    <button class="btn btn-primary" id="open-transaction-modal">
+                        <i class="ph ph-plus-circle"></i> Nova Transação
+                    </button>
+                </div>
+            </header>
+
+            <section class="page active" id="painel">
+                <div class="summary-cards">
+                    <div class="card clickable" id="income-card">
+                        <header class="card-header">
+                            <span>Receita Total</span>
+                            <i class="ph ph-arrow-circle-up"></i>
+                        </header>
+                        <h2 id="total-income">R$ 0,00</h2>
+                    </div>
+                    <div class="card clickable" id="expense-card">
+                        <header class="card-header">
+                            <span>Despesa Total</span>
+                            <i class="ph ph-arrow-circle-down"></i>
+                        </header>
+                        <h2 id="total-expense">R$ 0,00</h2>
+                    </div>
+                    <div class="card">
+                        <header class="card-header">
+                            <span>Saldo Atual</span>
+                            <i class="ph ph-currency-circle-dollar"></i>
+                        </header>
+                        <h2 id="current-balance">R$ 0,00</h2>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <h3>Transações Recentes</h3>
+                    <ul class="transaction-list" id="recent-transactions-list">
+                        </ul>
+                    <div class="empty-state" id="empty-recent-state">
+                        <p>Nenhuma transação ainda. Adicione uma para começar!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="economias">
+                <div class="page-header">
+                    <h3>Gerencie suas metas de gastos mensais.</h3>
+                    <button class="btn btn-primary" id="open-goal-modal">
+                        <i class="ph ph-plus"></i> Definir Orçamentos
+                    </button>
+                </div>
+
+                <div class="goals-list" id="goals-list">
+                    </div>
+
+                <div class="empty-state show" id="empty-goals-state">
+                    <p>Nenhum Orçamento Definido</p>
+                    <p>Clique em 'Definir Orçamentos' para criar sua primeira meta de gastos.</p>
+                </div>
+            </section>
+
+            <section class="page" id="extrato">
+                <div class="page-header">
+                    <h3>Todas as Transações</h3>
+                    <div class="filter-container">
+                        <label for="category-filter">Filtrar por:</label>
+                        <select id="category-filter">
+                            <option value="all">Todas as Categorias</option>
+                            </select>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <ul class="transaction-list" id="all-transactions-list">
+                        </ul>
+                    <div class="empty-state" id="empty-all-state">
+                        <p>Você ainda não tem nenhuma transação registrada.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="transaction-modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Nova Transação</h2>
+                <button class="close-modal" id="close-transaction-modal">
+                    <i class="ph ph-x"></i>
+                </button>
+            </header>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="type" value="income" id="radio-income" checked>
+                            <i class="ph ph-arrow-circle-up"></i> Receita
+                        </label>
+                        <label>
+                            <input type="radio" name="type" value="expense" id="radio-expense">
+                            <i class="ph ph-arrow-circle-down"></i> Despesa
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description">Descrição</label>
+                    <input type="text" id="description" placeholder="Ex: Salário, Aluguel, Supermercado" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Valor</label>
+                    <input type="number" id="amount" placeholder="100,00" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Categoria</label>
+                    <input type="text" id="category" placeholder="Ex: Alimentação, Transporte" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Adicionar Transação</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="goal-modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Definir Orçamento (Meta)</h2>
+                <button class="close-modal" id="close-goal-modal">
+                    <i class="ph ph-x"></i>
+                </button>
+            </header>
+            <form id="goal-form">
+                <div class="form-group">
+                    <label for="goal-name">Nome da Meta</label>
+                    <input type="text" id="goal-name" placeholder="Ex: Gastos de Casa, Transporte Mensal" required>
+                </div>
+                <div class="form-group">
+                    <label for="goal-target">Valor Máximo (Orçamento)</label>
+                    <input type="number" id="goal-target" placeholder="R$ 1000,00" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="goal-current-amount">Valor Atual Depositado</label>
+                    <input type="number" id="goal-current-amount" placeholder="0,00" step="0.01" min="0" value="0.00" required>
+                    <small style="color: var(--text-secondary);">Este é o valor inicial que você tem para a meta.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Criar Meta</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="manage-goal-modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="manage-goal-title">Gerenciar Meta</h2>
+                <button class="close-modal" id="close-manage-goal-modal">
+                    <i class="ph ph-x"></i>
+                </button>
+            </header>
+            <form id="manage-goal-form">
+                <div class="form-group">
+                    <label>Ação</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="manage-type" value="add" id="radio-add" checked>
+                            <i class="ph ph-plus-circle"></i> Adicionar
+                        </label>
+                        <label>
+                            <input type="radio" name="manage-type" value="withdraw" id="radio-withdraw">
+                            <i class="ph ph-minus-circle"></i> Retirar
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="manage-goal-amount">Valor</label>
+                    <input type="number" id="manage-goal-amount" placeholder="50,00" step="0.01" min="0.01" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <input type="hidden" id="manage-goal-id">
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="history-modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="history-modal-title">Histórico de Adições</h2>
+                <button class="close-modal" id="close-history-modal">
+                    <i class="ph ph-x"></i>
+                </button>
+            </header>
+            <ul class="history-list" id="history-list-content">
+                </ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

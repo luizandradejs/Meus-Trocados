@@ -1,0 +1,809 @@
+/* ================== RESET E FONTES ================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ================== VARIÁVEIS DE COR (TEMA) ================== */
+:root {
+    --bg-main: #100E19;
+    --bg-sidebar: #191722;
+    --bg-content: #1F1D2B;
+    --bg-card: #252836;
+    --primary: #A45EFF; /* Roxo principal */
+    --primary-hover: #BB86FC;
+    --text-primary: #FFFFFF;
+    --text-secondary: #ABABAD;
+    --border: #3A3A5A;
+    --green: #22C55E;
+    --red: #EF4444;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.light-mode {
+    --bg-main: #F4F4F9;
+    --bg-sidebar: #FFFFFF;
+    --bg-content: #FFFFFF;
+    --bg-card: #FDFDFD;
+    --primary: #7F5AF0;
+    --primary-hover: #6A45D9;
+    --text-primary: #1F1D2B;
+    --text-secondary: #5C5C7B;
+    --border: #E0E0E0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: 1rem;
+}
+
+i.ph {
+    font-size: 1.25rem;
+    vertical-align: middle;
+}
+
+/* ================== LAYOUT PRINCIPAL (DESKTOP) ================== */
+.app-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+}
+
+/* ================== BARRA LATERAL (SIDEBAR) ================== */
+.sidebar {
+    background-color: var(--bg-sidebar);
+    padding: 24px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    transition: background-color 0.3s, border-color 0.3s;
+    /* NOVO: Propriedades para Mobile */
+    position: fixed; /* Fixa o menu */
+    z-index: 500;
+    height: 100vh;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.sidebar-header i {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: background-color 0.2s, color 0.2s;
+}
+.nav-button:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+}
+.nav-button.active {
+    background-color: var(--bg-content);
+    color: var(--primary);
+}
+
+/* NOVO: BOTÃO DO MENU HAMBÚRGUER (SÓ APARECE NO MOBILE) */
+.menu-toggle {
+    display: none; /* Escondido por padrão no Desktop */
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    padding: 10px;
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    z-index: 600;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ================== CONTEÚDO PRINCIPAL ================== */
+.main-content {
+    padding: 24px 40px;
+    overflow-y: auto;
+}
+
+.main-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 
+        "title actions"
+        "subtitle actions";
+    align-items: center;
+    margin-bottom: 32px;
+    gap: 4px 16px;
+}
+
+#page-title {
+    grid-area: title;
+    font-size: 1.75rem;
+    color: var(--text-primary);
+}
+
+#page-subtitle {
+    grid-area: subtitle;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.header-actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* ================== BOTÕES ================== */
+.btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.btn i {
+    font-size: 1.1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #FFFFFF;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 12px -2px rgba(164, 94, 255, 0.3);
+}
+
+/* Botão secundário (para histórico) */
+.btn-secondary {
+    background-color: var(--bg-content);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+
+.theme-toggle {
+    padding: 8px;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.theme-toggle:hover {
+    color: var(--text-primary);
+}
+.theme-toggle .ph-sun { display: none; }
+body.light-mode .theme-toggle .ph-sun { display: block; }
+body.light-mode .theme-toggle .ph-moon { display: none; }
+
+/* ================== PÁGINAS (SECTIONS) ================== */
+.page {
+    display: none; /* Escondido por padrão */
+}
+.page.active {
+    display: block; /* Visível quando ativo */
+}
+
+/* ================== PAINEL: CARDS DE RESUMO ================== */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+.card-header i {
+    font-size: 1.5rem;
+}
+.card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card.clickable {
+    cursor: pointer;
+}
+.card.clickable:hover {
+    transform: scale(1.02);
+    border-color: var(--primary);
+}
+
+
+/* ================== BLOCO DE CONTEÚDO (Transações, etc) ================== */
+.content-block {
+    background-color: var(--bg-content);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.content-block h3 {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+.content-block p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    display: none;
+}
+.empty-state.show {
+    display: block;
+}
+
+/* ================== LISTA DE TRANSAÇÕES ================== */
+.transaction-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.transaction-list li {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+.transaction-list li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.list-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.list-icon.income { background-color: rgba(34, 197, 94, 0.1); color: var(--green); }
+.list-icon.expense { background-color: rgba(239, 68, 68, 0.1); color: var(--red); }
+
+.list-description span {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+}
+.list-description small {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.list-amount {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.list-amount.income { color: var(--green); }
+.list-amount.expense { color: var(--red); }
+
+.delete-transaction-btn {
+    color: var(--text-secondary);
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.delete-transaction-btn i {
+    font-size: 1.1rem;
+}
+.delete-transaction-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--red);
+}
+
+/* ================== PÁGINA ECONOMIAS (METAS) E EXTRATO ================== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    /* NOVO: Quebra de linha e alinhamento no mobile */
+    flex-wrap: wrap; 
+    gap: 16px;
+}
+.page-header h3 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+.goals-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.goal-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.goal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.goal-card-header div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.goal-card-header h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.goal-card-header small {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.goal-card-header small i {
+    font-size: 0.875rem;
+}
+.delete-goal-btn {
+    padding: 4px;
+    border-radius: 50%;
+    color: var(--text-secondary);
+}
+.delete-goal-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--red);
+}
+.goal-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+.progress-info .current {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.progress-info .target {
+    font-weight: 500;
+}
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: var(--bg-content);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--primary);
+    border-radius: 5px;
+    transition: width 0.5s ease-out;
+}
+.goal-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.goal-card-actions .btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+}
+.goal-card-actions .btn i {
+    font-size: 1rem;
+}
+
+/* NOVO: Filtro de Categoria (Página Extrato) */
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* NOVO: Permite que o filtro ocupe toda a largura no mobile */
+    flex-wrap: wrap; 
+}
+.filter-container label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.filter-container select {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    appearance: none; 
+    /* NOVO: Ocupa o espaço restante */
+    flex-grow: 1;
+}
+
+
+/* ================== MODAL ================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 1000;
+}
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--bg-content);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%; /* NOVO: Limita a largura em 90% da tela */
+    max-width: 450px;
+    border: 1px solid var(--border);
+    transform: scale(0.95);
+    transition: transform 0.3s;
+    max-height: 90vh; /* NOVO: Garante que o modal caiba na tela */
+    overflow-y: auto; /* NOVO: Permite scroll no modal se for muito grande */
+}
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.modal-header h2 {
+    font-size: 1.25rem;
+}
+.close-modal {
+    padding: 4px;
+    border-radius: 50%;
+    color: var(--text-secondary);
+}
+.close-modal:hover {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+/* ================== FORMULÁRIO NO MODAL ================== */
+#transaction-form, #goal-form, #manage-goal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.form-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    appearance: none; 
+}
+.form-group input::placeholder {
+    color: var(--text-secondary);
+}
+.form-group select {
+    cursor: pointer;
+}
+
+
+.radio-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.radio-group label {
+    background-color: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    transition: border-color 0.2s, color 0.2s;
+}
+.radio-group input[type="radio"] { display: none; }
+.radio-group label:has(input[value="income"]):hover,
+.radio-group label:has(input[value="add"]):hover {
+    border-color: var(--green); color: var(--green);
+}
+.radio-group label:has(input[value="expense"]):hover,
+.radio-group label:has(input[value="withdraw"]):hover {
+    border-color: var(--red); color: var(--red);
+}
+.radio-group input[value="income"]:checked + i,
+.radio-group input[value="add"]:checked + i { color: var(--green); }
+.radio-group input[value="expense"]:checked + i,
+.radio-group input[value="withdraw"]:checked + i { color: var(--red); }
+.radio-group input[type="radio"]:checked + i + span,
+.radio-group input[type="radio"]:checked ~ * { color: var(--text-primary); }
+.radio-group input[value="income"]:checked ~ *,
+.radio-group input[value="add"]:checked ~ * { color: var(--green); }
+.radio-group input[value="expense"]:checked ~ *,
+.radio-group input[value="withdraw"]:checked ~ * { color: var(--red); }
+.radio-group label:has(input[value="income"]:checked),
+.radio-group label:has(input[value="add"]:checked) {
+    border-color: var(--green); box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+}
+.radio-group label:has(input[value="expense"]:checked),
+.radio-group label:has(input[value="withdraw"]:checked) {
+    border-color: var(--red); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+#transaction-form .btn-primary,
+#goal-form .btn-primary,
+#manage-goal-form .btn-primary {
+    padding: 14px;
+    font-size: 1rem;
+    margin-top: 8px;
+}
+
+/* Lista de Histórico no Modal */
+.history-list {
+    list-style: none;
+    max-height: 40vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.history-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+.history-list li span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+.history-list li strong {
+    font-size: 1rem;
+    font-weight: 600;
+}
+.history-list li.addition strong {
+    color: var(--green);
+}
+.history-list li.withdrawal strong {
+    color: var(--red);
+}
+
+/* Estilo para nome clicável */
+#page-title.clickable-name {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+#page-title.clickable-name:hover {
+    color: var(--primary);
+    text-decoration: underline dashed 1px;
+}
+
+/* ================== LAYOUT MOBILE ================== */
+
+@media (max-width: 768px) {
+    /* 1. LAYOUT PRINCIPAL */
+    .app-container {
+        /* Muda de 2 colunas para apenas 1 (o conteúdo) */
+        grid-template-columns: 1fr; 
+    }
+    
+    /* 2. BARRA LATERAL (Sidebar) */
+    .sidebar {
+        /* Esconde a barra lateral por padrão em telas pequenas */
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-out;
+        width: 240px; /* Largura menor no mobile */
+        padding-top: 70px; /* Desce o conteúdo para não conflitar com o botão do menu */
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
+    }
+    /* Estilo quando o menu estiver aberto (usaremos JS para adicionar a classe 'open') */
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* 3. CONTEÚDO PRINCIPAL */
+    .main-content {
+        padding: 20px 16px; /* Diminui o padding em telas pequenas */
+    }
+
+    /* 4. BOTÃO HAMBÚRGUER */
+    .menu-toggle {
+        display: block; /* Mostra o botão hambúrguer */
+    }
+
+    /* 5. CABEÇALHO (Header) */
+    .main-header {
+        /* Ajusta o grid para empilhar o título/subtítulo sobre as ações */
+        grid-template-columns: 1fr auto;
+        grid-template-areas: 
+            "title actions"
+            "subtitle actions";
+        margin-bottom: 24px;
+    }
+    #page-title {
+        font-size: 1.5rem; /* Diminui o título */
+    }
+    
+    /* 6. AÇÕES DO HEADER */
+    .header-actions {
+        /* Garante que os botões fiquem alinhados corretamente no topo */
+        grid-column: 2 / 3;
+        grid-row: 1 / 3;
+        flex-direction: column; /* Empilha os botões */
+        align-items: flex-end;
+        gap: 8px;
+    }
+    .btn-primary {
+        /* Faz o botão 'Nova Transação' ser mais estreito */
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+
+    /* 7. CARDS DE RESUMO */
+    .summary-cards {
+        /* Força os cards a se empilharem verticalmente em telas muito pequenas */
+        grid-template-columns: 1fr; 
+        gap: 16px;
+    }
+
+    /* 8. LISTA DE TRANSAÇÕES */
+    .transaction-list li {
+        /* Simplifica o grid para que as informações caibam melhor */
+        grid-template-columns: auto 1fr auto; /* Ícone, Descrição, Valor */
+        gap: 12px;
+        position: relative;
+    }
+    .delete-transaction-btn {
+        /* Posiciona o botão de lixeira no canto direito do item */
+        position: absolute;
+        top: 10px; 
+        right: 0;
+    }
+    .list-description {
+        /* Permite que a descrição ocupe mais espaço */
+        grid-column: 2 / 3;
+    }
+    .list-amount {
+        /* Permite que o valor ocupe mais espaço */
+        grid-column: 3 / 4;
+    }
+    
+    /* Corrige o layout da lista para que a descrição e valor fiquem na mesma linha */
+    .transaction-list li > *:nth-child(2) { /* Descrição */
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+    }
+    .transaction-list li > *:nth-child(3) { /* Valor */
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+        text-align: right;
+    }
+    
+    /* 9. METAS */
+    .goals-list {
+        /* Força as metas a ocuparem 100% da largura */
+        grid-template-columns: 1fr;
+    }
+    
+    .page-header {
+        /* Alinha o título e o botão de orçamento no mobile */
+        justify-content: center;
+        text-align: center;
+    }
+    .page-header h3 {
+        width: 100%;
+    }
+
+    /* 10. MODAL */
+    .modal-content {
+        /* Deixa o modal mais perto do topo no mobile */
+        margin: 20px 0;
+        align-self: flex-start;
+    }
+}
