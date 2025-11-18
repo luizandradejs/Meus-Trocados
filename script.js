@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Elementos de Layout/Mobile ---
     const sidebar = document.getElementById('sidebar'); 
     const menuToggle = document.getElementById('menu-toggle'); 
-    const mainContent = document.querySelector('.main-content'); // NOVO para fechar o menu ao clicar no conteúdo
+    const mainContent = document.querySelector('.main-content'); 
 
     // --- Elementos do Painel ---
     const totalIncomeEl = document.getElementById('total-income');
@@ -17,13 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentBalanceEl = document.getElementById('current-balance');
     const recentList = document.getElementById('recent-transactions-list');
     const emptyRecentState = document.getElementById('empty-recent-state');
+    // NOVO: Seletores para os cards clicáveis
+    const incomeCard = document.getElementById('income-card');
+    const expenseCard = document.getElementById('expense-card');
 
     // --- Elementos do Extrato ---
     const allList = document.getElementById('all-transactions-list');
     const emptyAllState = document.getElementById('empty-all-state');
     const categoryFilter = document.getElementById('category-filter'); 
+    // NOVO: Botão de Download
+    const downloadTransactionsBtn = document.getElementById('download-transactions-btn');
     
-    // --- Elementos de Gráficos (Canvas) --- (NOVO)
+    // --- Elementos de Gráficos (Canvas) ---
     const categoryChartCanvas = document.getElementById('categoryChart');
     const flowChartCanvas = document.getElementById('flowChart');
     const emptyChartCategory = document.getElementById('empty-chart-category');
@@ -38,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const openModalBtn = document.getElementById('open-transaction-modal');
     const closeModalBtn = document.getElementById('close-transaction-modal');
     const transactionForm = document.getElementById('transaction-form');
-    const transactionTypeRadios = document.querySelectorAll('input[name="type"]');
+    const radioIncome = document.getElementById('radio-income'); // NOVO: para pré-seleção
+    const radioExpense = document.getElementById('radio-expense'); // NOVO: para pré-seleção
     const descriptionInput = document.getElementById('description');
     const amountInput = document.getElementById('amount');
     const categoryInput = document.getElementById('category');
@@ -99,6 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         return new Date(dateString).toLocaleDateString('pt-BR', options);
     };
+
+    // NOVO: Função para formatar data e hora de forma mais completa (para o CSV)
+    const formatDateTimeCSV = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+    }
     
     // Função utilitária para obter a cor de fundo do tema
     const getBgContent = () => {
@@ -245,6 +257,58 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             alert("Por favor, preencha todos os campos corretamente.");
         }
+    };
+
+    // NOVO: Função para abrir o modal de transação e pré-selecionar o tipo
+    const openTransactionModal = (type = 'income') => {
+        if (type === 'expense') {
+            radioExpense.checked = true;
+        } else {
+            radioIncome.checked = true;
+        }
+        transactionModal.classList.add('show');
+    };
+
+    // ================== FUNÇÃO DE DOWNLOAD CSV ==================
+
+    const downloadTransactionsAsCSV = () => {
+        if (transactions.length === 0) {
+            alert("Não há transações para exportar.");
+            return;
+        }
+
+        const headers = ["Data", "Tipo", "Descricao", "Categoria", "Valor"];
+        const csvRows = [];
+        csvRows.push(headers.join(';')); // Adiciona cabeçalho
+
+        transactions.forEach(t => {
+            // Formata os dados para o CSV. Usa ponto no valor para consistência de planilha, mas usa a vírgula como separador decimal.
+            const amountFormatted = t.amount.toFixed(2).replace('.', ','); 
+            const typeText = t.type === 'income' ? 'RECEITA' : 'DESPESA';
+            const row = [
+                `"${formatDateTimeCSV(t.date)}"`,
+                `"${typeText}"`,
+                `"${t.description.replace(/"/g, '""')}"`, // Escapa aspas
+                `"${t.category.replace(/"/g, '""')}"`,
+                amountFormatted
+            ];
+            csvRows.push(row.join(';'));
+        });
+
+        const csvString = csvRows.join('\n');
+        
+        // Cria um Blob e faz o download
+        const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' }); // \uFEFF para garantir o encoding UTF-8 no Excel
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `extrato_meus_trocados_${new Date().toISOString().slice(0, 10)}.csv`);
+        
+        // Simula o clique
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     // ================== FUNÇÕES DE METAS (GOALS) ==================
@@ -676,12 +740,19 @@ document.addEventListener('DOMContentLoaded', () => {
     pageTitle.addEventListener('click', handleNameClick);
 
     // --- Modal Transação ---
-    openModalBtn.addEventListener('click', () => { transactionModal.classList.add('show'); });
+    openModalBtn.addEventListener('click', () => openTransactionModal('income')); // Abre com 'Receita' padrão
     closeModalBtn.addEventListener('click', () => { transactionModal.classList.remove('show'); });
     transactionModal.addEventListener('click', (e) => {
         if (e.target === transactionModal) transactionModal.classList.remove('show');
     });
     transactionForm.addEventListener('submit', handleTransactionSubmit);
+    
+    // NOVO: Adiciona a funcionalidade de clique nos cards de resumo para abrir o modal
+    incomeCard.addEventListener('click', () => openTransactionModal('income'));
+    expenseCard.addEventListener('click', () => openTransactionModal('expense'));
+    
+    // NOVO: Adiciona a funcionalidade de download CSV
+    downloadTransactionsBtn.addEventListener('click', downloadTransactionsAsCSV);
 
     // --- Deletar Transação ---
     document.addEventListener('click', (e) => {

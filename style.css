@@ -192,7 +192,7 @@ i.ph {
     box-shadow: 0 4px 12px -2px rgba(164, 94, 255, 0.3);
 }
 
-/* Botão secundário (para histórico) */
+/* Botão secundário (para histórico e download) */
 .btn-secondary {
     background-color: var(--bg-content);
     color: var(--text-secondary);
@@ -492,6 +492,9 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     align-items: center;
     gap: 12px;
     flex-wrap: wrap; 
+    /* Adicionado para garantir que o botão de download fique no mesmo bloco */
+    flex-grow: 1; 
+    justify-content: flex-end; /* Alinha o conteúdo à direita no desktop */
 }
 .filter-container label {
     font-size: 0.9rem;
@@ -507,7 +510,14 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     font-size: 0.9rem;
     font-weight: 500;
     appearance: none; 
-    flex-grow: 1;
+    flex-grow: 0.5; /* Ajuste para ter espaço para o botão */
+    min-width: 180px;
+}
+/* Estilizando o novo botão para ficar bem com o select */
+#download-transactions-btn {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    flex-shrink: 0;
 }
 
 
@@ -796,5 +806,21 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     /* 7. GRÁFICOS */
     .chart-area {
         height: 300px; /* Altura menor no mobile */
+    }
+
+    /* 8. AJUSTE DO FILTRO NO MOBILE */
+    .filter-container {
+        /* Permite que os elementos se ajustem melhor no mobile */
+        justify-content: flex-start;
+    }
+    .filter-container select, #download-transactions-btn {
+        /* Ocupa a largura total para melhor clique */
+        width: 100%; 
+        flex-grow: 1;
+        min-width: unset;
+    }
+    .filter-container label {
+        /* Ocupa a largura total */
+        width: 100%; 
     }
 }
