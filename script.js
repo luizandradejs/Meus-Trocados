@@ -560,11 +560,21 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('open');
     });
 
-    // --- NOVO: Fechar Menu Mobile ao clicar fora (no main-content) ---
-    document.querySelector('.main-content').addEventListener('click', () => {
-        // Verifica se o menu está aberto e se a tela é mobile
-        if (sidebar.classList.contains('open') && window.innerWidth <= 768) {
-            sidebar.classList.remove('open');
+    // ⛔ Código removido: Fechar Menu Mobile ao clicar fora (no main-content)
+    // Foi substituído por uma lógica mais robusta que escuta o 'document'
+
+    // ✅ NOVO: Fechar Menu Mobile ao clicar fora da Sidebar
+    document.addEventListener('click', (e) => {
+        // Verifica se a tela é mobile E se o menu está aberto
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+            
+            // Verifica se o clique NÃO foi dentro da sidebar E NÃO foi no botão de menu (toggle)
+            const clickedInsideSidebar = sidebar.contains(e.target);
+            const clickedMenuToggle = menuToggle.contains(e.target);
+
+            if (!clickedInsideSidebar && !clickedMenuToggle) {
+                sidebar.classList.remove('open');
+            }
         }
     });
 
