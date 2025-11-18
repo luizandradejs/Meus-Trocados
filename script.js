@@ -111,15 +111,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateGreeting = (isPanel = true) => {
-        if (isPanel) {
+        const activePageId = document.querySelector('.page.active').id;
+
+        if (activePageId === 'painel') {
             pageTitle.textContent = `Oi, ${userName}!`;
             pageSubtitle.textContent = `Bem-vindo(a) de volta ao seu painel financeiro.`;
-        } else if (document.querySelector('.page.active').id === 'economias') {
+        } else if (activePageId === 'economias') {
             pageTitle.textContent = `Orçamentos`;
             pageSubtitle.textContent = `Gerencie suas metas de gastos mensais.`;
-        } else if (document.querySelector('.page.active').id === 'extrato') {
+        } else if (activePageId === 'extrato') {
             pageTitle.textContent = `Extrato de Transações`;
             pageSubtitle.textContent = `Veja o histórico completo de suas movimentações.`;
+        } else if (activePageId === 'graficos') { // NOVO
+            pageTitle.textContent = `Dashboard`;
+            pageSubtitle.textContent = `Análise visual de suas receitas e despesas.`;
         }
     };
     
@@ -442,6 +447,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderTransactionList(allList, filteredData, Infinity, true);
     };
+    
+    // ================== FUNÇÃO DE GRÁFICOS (NOVO) ==================
+
+    const renderCharts = () => {
+        // Esta é uma função placeholder. 
+        // Você pode usar uma biblioteca como Chart.js aqui.
+
+        /* // Exemplo para Chart.js:
+        const expenseData = transactions.filter(t => t.type === 'expense');
+        const categories = expenseData.reduce((acc, t) => {
+            acc[t.category] = (acc[t.category] || 0) + t.amount;
+            return acc;
+        }, {});
+        
+        const chartData = {
+            labels: Object.keys(categories),
+            datasets: [{
+                data: Object.values(categories),
+                backgroundColor: ['#A45EFF', '#EF4444', '#22C55E', '#FFC107', '#00BCD4']
+            }]
+        };
+
+        const ctx = document.getElementById('categoryChart')?.getContext('2d');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: chartData,
+                options: { ... }
+            });
+        }
+        */
+        
+        // Simplesmente garante que, ao navegar, a UI seja atualizada
+        console.log('Gráficos atualizados (Placeholder)');
+    };
+
 
     // ================== FUNÇÃO DE ATUALIZAÇÃO GERAL ==================
 
@@ -455,7 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Renderiza listas
         renderTransactionList(recentList, transactions, 5, true); // 5 recentes no painel
         filterTransactions(); // Todas no extrato
-
+        // Não chame renderCharts aqui, apenas quando a página de gráficos estiver ativa
+        
         // Popula filtro
         populateCategoryFilter();
     };
@@ -480,7 +522,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(targetId).classList.add('active');
 
             // Atualiza o título da página
-            updateGreeting(targetId === 'painel');
+            updateGreeting(); // Chamada sem parâmetro, pois a função agora verifica o ID ativo
+            
+            // NOVO: Renderiza gráficos quando a página é ativada
+            if (targetId === 'graficos') {
+                renderCharts(); 
+            }
             
             // NOVO: Fecha o menu no mobile após clicar
             if (window.innerWidth <= 768) {
@@ -503,11 +550,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Altera subtítulo baseado no tipo (Receita/Despesa)
     transactionTypeRadios.forEach(radio => {
         radio.addEventListener('change', () => {
-            if (radio.value === 'income') {
-                pageSubtitle.textContent = `Registre sua entrada de dinheiro.`;
-            } else {
-                pageSubtitle.textContent = `Registre sua saída de dinheiro.`;
-            }
+            // Revertendo a alteração do subtítulo no modal, pois ele deve ser estático.
+            // O subtítulo dinâmico é para a página principal.
+            // A alteração do subtítulo do header principal ocorre apenas na navegação.
         });
     });
 
@@ -560,23 +605,10 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('open');
     });
 
-    // ⛔ Código removido: Fechar Menu Mobile ao clicar fora (no main-content)
-    // Foi substituído por uma lógica mais robusta que escuta o 'document'
-
-    // ✅ NOVO: Fechar Menu Mobile ao clicar fora da Sidebar
-    document.addEventListener('click', (e) => {
-        // Verifica se a tela é mobile E se o menu está aberto
-        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-            
-            // Verifica se o clique NÃO foi dentro da sidebar E NÃO foi no botão de menu (toggle)
-            const clickedInsideSidebar = sidebar.contains(e.target);
-            const clickedMenuToggle = menuToggle.contains(e.target);
-
-            if (!clickedInsideSidebar && !clickedMenuToggle) {
-                sidebar.classList.remove('open');
-            }
-        }
-    });
+    // --- NOVO: Fechar Menu Mobile ao clicar fora (no main-content) ---
+    // A remoção da funcionalidade de fechar o menu ao clicar no main-content
+    // foi feita para evitar o fechamento indesejado ao interagir com a UI.
+    // O fechamento está sendo feito no clique de navegação (navButtons)
 
     // ================== INICIALIZAÇÃO ==================
     const loadTheme = () => {

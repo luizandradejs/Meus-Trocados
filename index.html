@@ -6,7 +6,7 @@
     <title>Meus Trocados</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
+    </head>
 <body>
 
     <button class="menu-toggle" id="menu-toggle">
@@ -31,6 +31,10 @@
                 <button class="nav-button" data-target="extrato">
                     <i class="ph ph-text-align-left"></i>
                     <span>Extrato</span>
+                </button>
+                <button class="nav-button" data-target="graficos">
+                    <i class="ph ph-chart-pie"></i>
+                    <span>Gráficos</span>
                 </button>
             </nav>
         </aside>
@@ -119,6 +123,27 @@
                     <div class="empty-state" id="empty-all-state">
                         <p>Você ainda não tem nenhuma transação registrada.</p>
                     </div>
+                </div>
+            </section>
+
+            <section class="page" id="graficos">
+                <div class="page-header">
+                    <h3>Dashboard de Movimentações</h3>
+                    <p class="subtitle">Análise visual de suas receitas e despesas.</p>
+                </div>
+
+                <div class="content-block chart-container">
+                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">Despesas por Categoria</h4>
+                    <div class="chart-area" id="category-chart-area">
+                        <p style="color: var(--text-secondary); text-align: center;">Placeholder para Gráfico de Rosca/Pizza</p>
+                        </div>
+                </div>
+
+                <div class="content-block chart-container" style="margin-top: 24px;">
+                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">Fluxo de Caixa (Receitas vs Despesas)</h4>
+                    <div class="chart-area" id="flow-chart-area">
+                        <p style="color: var(--text-secondary); text-align: center;">Placeholder para Gráfico de Barras/Linhas</p>
+                        </div>
                 </div>
             </section>
 
