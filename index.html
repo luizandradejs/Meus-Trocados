@@ -6,7 +6,8 @@
     <title>Meus Trocados</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    </head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 <body>
 
     <button class="menu-toggle" id="menu-toggle">
@@ -41,7 +42,7 @@
 
         <main class="main-content">
             <header class="main-header">
-                <h1 id="page-title">Oi, Colega!</h1>
+                <h1 id="page-title" class="clickable-name">Oi, Colega!</h1>
                 <p id="page-subtitle">Bem-vindo(a) de volta ao seu painel financeiro.</p>
                 <div class="header-actions">
                     <button class="theme-toggle" id="theme-toggle">
@@ -125,7 +126,7 @@
                     </div>
                 </div>
             </section>
-
+            
             <section class="page" id="graficos">
                 <div class="page-header">
                     <h3>Dashboard de Movimentações</h3>
@@ -135,15 +136,21 @@
                 <div class="content-block chart-container">
                     <h4 style="margin-bottom: 16px; color: var(--text-primary);">Despesas por Categoria</h4>
                     <div class="chart-area" id="category-chart-area">
-                        <p style="color: var(--text-secondary); text-align: center;">Placeholder para Gráfico de Rosca/Pizza</p>
+                        <canvas id="categoryChart"></canvas>
+                        <div class="empty-state show" id="empty-chart-category">
+                            <p>Adicione transações de **despesa** para visualizar o gráfico.</p>
                         </div>
+                    </div>
                 </div>
 
                 <div class="content-block chart-container" style="margin-top: 24px;">
-                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">Fluxo de Caixa (Receitas vs Despesas)</h4>
+                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">Fluxo de Caixa (Receitas vs Despesas Mensais)</h4>
                     <div class="chart-area" id="flow-chart-area">
-                        <p style="color: var(--text-secondary); text-align: center;">Placeholder para Gráfico de Barras/Linhas</p>
+                        <canvas id="flowChart"></canvas>
+                         <div class="empty-state show" id="empty-chart-flow">
+                            <p>Adicione transações para visualizar o fluxo de caixa.</p>
                         </div>
+                    </div>
                 </div>
             </section>
 

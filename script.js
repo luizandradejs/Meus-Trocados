@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageTitle = document.getElementById('page-title');
     const pageSubtitle = document.getElementById('page-subtitle');
     
-    // --- Elementos de Layout/Mobile --- (NOVO)
-    const sidebar = document.getElementById('sidebar'); // Alterado para ID
-    const menuToggle = document.getElementById('menu-toggle'); // NOVO
+    // --- Elementos de Layout/Mobile ---
+    const sidebar = document.getElementById('sidebar'); 
+    const menuToggle = document.getElementById('menu-toggle'); 
+    const mainContent = document.querySelector('.main-content'); // NOVO para fechar o menu ao clicar no conteúdo
 
     // --- Elementos do Painel ---
     const totalIncomeEl = document.getElementById('total-income');
@@ -16,14 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentBalanceEl = document.getElementById('current-balance');
     const recentList = document.getElementById('recent-transactions-list');
     const emptyRecentState = document.getElementById('empty-recent-state');
-    const incomeCard = document.getElementById('income-card');
-    const expenseCard = document.getElementById('expense-card');
 
     // --- Elementos do Extrato ---
     const allList = document.getElementById('all-transactions-list');
     const emptyAllState = document.getElementById('empty-all-state');
     const categoryFilter = document.getElementById('category-filter'); 
-
+    
+    // --- Elementos de Gráficos (Canvas) --- (NOVO)
+    const categoryChartCanvas = document.getElementById('categoryChart');
+    const flowChartCanvas = document.getElementById('flowChart');
+    const emptyChartCategory = document.getElementById('empty-chart-category');
+    const emptyChartFlow = document.getElementById('empty-chart-flow');
+    
+    // Variáveis globais para instâncias do Chart.js
+    let categoryChartInstance = null;
+    let flowChartInstance = null;
+    
     // --- Elementos de Transação (Modal) ---
     const transactionModal = document.getElementById('transaction-modal');
     const openModalBtn = document.getElementById('open-transaction-modal');
@@ -86,16 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(value);
     };
     
-    const formatGoalAmount = (value) => {
-        return new Intl.NumberFormat('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(value);
-    };
-
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         return new Date(dateString).toLocaleDateString('pt-BR', options);
+    };
+    
+    // Função utilitária para obter a cor de fundo do tema
+    const getBgContent = () => {
+        return getComputedStyle(document.body).getPropertyValue('--bg-content').trim();
     };
 
     // ================== FUNÇÕES DE NOME E SAUDAÇÃO ==================
@@ -110,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const updateGreeting = (isPanel = true) => {
+    const updateGreeting = () => {
         const activePageId = document.querySelector('.page.active').id;
 
         if (activePageId === 'painel') {
@@ -122,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (activePageId === 'extrato') {
             pageTitle.textContent = `Extrato de Transações`;
             pageSubtitle.textContent = `Veja o histórico completo de suas movimentações.`;
-        } else if (activePageId === 'graficos') { // NOVO
+        } else if (activePageId === 'graficos') {
             pageTitle.textContent = `Dashboard`;
             pageSubtitle.textContent = `Análise visual de suas receitas e despesas.`;
         }
@@ -160,11 +167,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.length === 0) {
             listElement.innerHTML = '';
-            listElement.parentNode.querySelector('.empty-state').classList.add('show');
+            // Usa o seletor mais genérico para suportar todos os .content-block
+            const emptyState = listElement.parentNode.querySelector('.empty-state');
+            if (emptyState) emptyState.classList.add('show');
             return;
         }
 
-        listElement.parentNode.querySelector('.empty-state').classList.remove('show');
+        const emptyState = listElement.parentNode.querySelector('.empty-state');
+        if (emptyState) emptyState.classList.remove('show');
         
         data.slice(0, max).forEach(t => {
             const li = document.createElement('li');
@@ -172,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const iconClass = t.type === 'income' ? 'ph-arrow-circle-up' : 'ph-arrow-circle-down';
             const typeClass = t.type === 'income' ? 'income' : 'expense';
+            const dateAndCategory = `${t.category} - ${formatDate(t.date)}`; // Texto para mobile
 
             li.innerHTML = `
                 <div class="list-icon ${typeClass}">
@@ -179,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="list-description">
                     <span>${t.description}</span>
-                    <small>${t.category} - ${formatDate(t.date)}</small>
+                    <small>${dateAndCategory}</small> 
                 </div>
                 <div class="list-amount ${typeClass}">
                     ${formatCurrency(t.amount)}
@@ -227,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (description && amount > 0 && category) {
             addTransaction(description, amount, type, category);
 
-            // Limpa o formulário e fecha o modal
             transactionForm.reset();
             transactionModal.classList.remove('show');
 
@@ -403,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         goal.history
-            .sort((a, b) => new Date(b.date) - new Date(a.date)) // Ordena do mais novo para o mais antigo
+            .sort((a, b) => new Date(b.date) - new Date(a.date)) 
             .forEach(item => {
                 const li = document.createElement('li');
                 const typeClass = item.type === 'add' ? 'addition' : 'withdrawal';
@@ -448,39 +458,164 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTransactionList(allList, filteredData, Infinity, true);
     };
     
-    // ================== FUNÇÃO DE GRÁFICOS (NOVO) ==================
+    // ================== FUNÇÃO DE GRÁFICOS (IMPLEMENTAÇÃO CHART.JS) ==================
 
     const renderCharts = () => {
-        // Esta é uma função placeholder. 
-        // Você pode usar uma biblioteca como Chart.js aqui.
-
-        /* // Exemplo para Chart.js:
-        const expenseData = transactions.filter(t => t.type === 'expense');
-        const categories = expenseData.reduce((acc, t) => {
-            acc[t.category] = (acc[t.category] || 0) + t.amount;
-            return acc;
-        }, {});
+        // --- Gráfico 1: Despesas por Categoria (Rosca/Doughnut) ---
+        const expenseData = transactions.filter(t => t.type === 'expense' && t.amount > 0);
         
-        const chartData = {
-            labels: Object.keys(categories),
-            datasets: [{
-                data: Object.values(categories),
-                backgroundColor: ['#A45EFF', '#EF4444', '#22C55E', '#FFC107', '#00BCD4']
-            }]
-        };
+        if (expenseData.length === 0) {
+            categoryChartCanvas.style.display = 'none';
+            emptyChartCategory.classList.add('show');
+        } else {
+            categoryChartCanvas.style.display = 'block';
+            emptyChartCategory.classList.remove('show');
 
-        const ctx = document.getElementById('categoryChart')?.getContext('2d');
-        if (ctx) {
-            new Chart(ctx, {
+            const categories = expenseData.reduce((acc, t) => {
+                const category = t.category.charAt(0).toUpperCase() + t.category.slice(1);
+                acc[category] = (acc[category] || 0) + t.amount;
+                return acc;
+            }, {});
+            
+            const labels = Object.keys(categories);
+            const data = Object.values(categories);
+            
+            // Gerar cores dinâmicas e baseadas no tema
+            const colors = ['#A45EFF', '#EF4444', '#22C55E', '#FFC107', '#00BCD4', '#F44336', '#9C27B0', '#03A9F4', '#FF9800', '#795548', '#607D8B'];
+            const backgroundColors = labels.map((_, i) => colors[i % colors.length]);
+            const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+            const bgColor = getBgContent();
+
+            if (categoryChartInstance) {
+                categoryChartInstance.destroy(); 
+            }
+            
+            categoryChartInstance = new Chart(categoryChartCanvas.getContext('2d'), {
                 type: 'doughnut',
-                data: chartData,
-                options: { ... }
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        hoverOffset: 10,
+                        borderColor: bgColor, 
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor,
+                            },
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: false,
+                        }
+                    }
+                }
             });
         }
-        */
+
+
+        // --- Gráfico 2: Fluxo de Caixa Mensal (Barras) ---
         
-        // Simplesmente garante que, ao navegar, a UI seja atualizada
-        console.log('Gráficos atualizados (Placeholder)');
+        if (transactions.length === 0) {
+            flowChartCanvas.style.display = 'none';
+            emptyChartFlow.classList.add('show');
+            if (flowChartInstance) flowChartInstance.destroy();
+            return;
+        } else {
+            flowChartCanvas.style.display = 'block';
+            emptyChartFlow.classList.remove('show');
+        }
+
+        const monthlyData = transactions.reduce((acc, t) => {
+            const date = new Date(t.date);
+            // Formato 'YYYY-MM' para ordenar corretamente
+            const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (!acc[monthYear]) {
+                acc[monthYear] = { income: 0, expense: 0 };
+            }
+
+            if (t.type === 'income') {
+                acc[monthYear].income += t.amount;
+            } else {
+                acc[monthYear].expense += t.amount;
+            }
+            return acc;
+        }, {});
+
+        // Ordenar as chaves (meses) cronologicamente
+        const sortedMonths = Object.keys(monthlyData).sort();
+        
+        const flowLabels = sortedMonths.map(my => {
+            const [year, month] = my.split('-');
+            const monthName = new Date(year, parseInt(month) - 1, 1).toLocaleString('pt-BR', { month: 'short' });
+            return `${monthName}/${year.slice(2)}`;
+        });
+        
+        const flowIncomeData = sortedMonths.map(my => monthlyData[my].income);
+        const flowExpenseData = sortedMonths.map(my => monthlyData[my].expense);
+        
+        const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+        const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim();
+
+
+        if (flowChartInstance) {
+            flowChartInstance.destroy(); 
+        }
+
+        flowChartInstance = new Chart(flowChartCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: flowLabels,
+                datasets: [
+                    {
+                        label: 'Receitas',
+                        data: flowIncomeData,
+                        backgroundColor: getComputedStyle(document.body).getPropertyValue('--green').trim(),
+                    },
+                    {
+                        label: 'Despesas',
+                        data: flowExpenseData,
+                        backgroundColor: getComputedStyle(document.body).getPropertyValue('--red').trim(),
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: false,
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    y: {
+                        stacked: false,
+                        grid: { color: gridColor },
+                        ticks: { 
+                            color: textColor,
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                             color: textColor,
+                        }
+                    }
+                }
+            }
+        });
     };
 
 
@@ -494,9 +629,13 @@ document.addEventListener('DOMContentLoaded', () => {
         currentBalanceEl.textContent = formatCurrency(currentBalance);
 
         // Renderiza listas
-        renderTransactionList(recentList, transactions, 5, true); // 5 recentes no painel
-        filterTransactions(); // Todas no extrato
-        // Não chame renderCharts aqui, apenas quando a página de gráficos estiver ativa
+        renderTransactionList(recentList, transactions, 5, true); 
+        filterTransactions(); 
+        
+        // Atualiza os gráficos se a página estiver ativa
+        if (document.querySelector('.page.active')?.id === 'graficos') {
+             renderCharts();
+        }
         
         // Popula filtro
         populateCategoryFilter();
@@ -513,23 +652,20 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             const targetId = button.dataset.target;
 
-            // Remove 'active' de todos os botões e páginas
             navButtons.forEach(btn => btn.classList.remove('active'));
             pages.forEach(page => page.classList.remove('active'));
 
-            // Adiciona 'active' ao botão e página clicados
             button.classList.add('active');
             document.getElementById(targetId).classList.add('active');
 
-            // Atualiza o título da página
-            updateGreeting(); // Chamada sem parâmetro, pois a função agora verifica o ID ativo
+            updateGreeting();
             
-            // NOVO: Renderiza gráficos quando a página é ativada
+            // Renderiza gráficos ao ativar a página
             if (targetId === 'graficos') {
                 renderCharts(); 
             }
             
-            // NOVO: Fecha o menu no mobile após clicar
+            // Fecha o menu no mobile após clicar
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('open');
             }
@@ -546,15 +682,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === transactionModal) transactionModal.classList.remove('show');
     });
     transactionForm.addEventListener('submit', handleTransactionSubmit);
-    
-    // Altera subtítulo baseado no tipo (Receita/Despesa)
-    transactionTypeRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-            // Revertendo a alteração do subtítulo no modal, pois ele deve ser estático.
-            // O subtítulo dinâmico é para a página principal.
-            // A alteração do subtítulo do header principal ocorre apenas na navegação.
-        });
-    });
 
     // --- Deletar Transação ---
     document.addEventListener('click', (e) => {
@@ -569,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Filtro de Categoria ---
     categoryFilter.addEventListener('change', filterTransactions);
 
-    // --- Modal Meta ---
+    // --- Modais de Metas ---
     openGoalModalBtn.addEventListener('click', () => goalModal.classList.add('show'));
     closeGoalModalBtn.addEventListener('click', () => goalModal.classList.remove('show'));
     goalModal.addEventListener('click', (e) => {
@@ -577,20 +704,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     goalForm.addEventListener('submit', handleGoalSubmit);
 
-    // --- Modal Gerenciar Meta ---
     closeManageGoalModalBtn.addEventListener('click', () => manageGoalModal.classList.remove('show'));
     manageGoalModal.addEventListener('click', (e) => {
         if (e.target === manageGoalModal) manageGoalModal.classList.remove('show');
     });
     manageGoalForm.addEventListener('submit', handleManageGoalSubmit);
 
-    // --- Modal de Histórico de Meta ---
     closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.remove('show'));
     historyModal.addEventListener('click', (e) => {
         if (e.target === historyModal) historyModal.classList.remove('show');
     });
 
-    // --- Cliques na Lista para Ações da Meta ---
     goalsList.addEventListener('click', handleGoalsListClick);
 
     // --- Alternador de Tema ---
@@ -598,17 +722,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('light-mode');
         const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
         localStorage.setItem('meus-trocados-theme', theme);
+        
+        // Recarrega gráficos ao trocar de tema para aplicar novas cores
+        if (document.querySelector('.page.active')?.id === 'graficos') {
+             renderCharts();
+        }
     });
     
-    // --- NOVO: Alternar Menu Mobile ---
+    // --- Controle de Menu Mobile (Hambúrguer) ---
     menuToggle.addEventListener('click', () => {
         sidebar.classList.toggle('open');
     });
-
-    // --- NOVO: Fechar Menu Mobile ao clicar fora (no main-content) ---
-    // A remoção da funcionalidade de fechar o menu ao clicar no main-content
-    // foi feita para evitar o fechamento indesejado ao interagir com a UI.
-    // O fechamento está sendo feito no clique de navegação (navButtons)
+    
+    // --- Fechar Menu Mobile ao clicar no conteúdo principal ---
+    mainContent.addEventListener('click', () => {
+        if (sidebar.classList.contains('open') && window.innerWidth <= 768) {
+            sidebar.classList.remove('open');
+        }
+    });
 
     // ================== INICIALIZAÇÃO ==================
     const loadTheme = () => {
@@ -620,7 +751,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     askForName();
     updateGreeting();
-    pageTitle.classList.add('clickable-name');
-    updateUI(); // Atualiza transações e resumo
-    updateGoalsList(); // Atualiza metas
+    updateUI(); 
+    updateGoalsList(); 
 });

@@ -75,9 +75,9 @@ i.ph {
     flex-direction: column;
     gap: 40px;
     transition: background-color 0.3s, border-color 0.3s;
-    /* NOVO: Propriedades para Mobile */
-    position: fixed; /* Fixa o menu */
-    z-index: 500;
+    /* Propriedades para Mobile - Fixo no Desktop */
+    position: sticky; /* Sticky para que fique fixo ao rolar o conteúdo */
+    top: 0;
     height: 100vh;
 }
 
@@ -269,7 +269,7 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
 }
 
 
-/* ================== BLOCO DE CONTEÚDO (Transações, etc) ================== */
+/* ================== BLOCO DE CONTEÚDO (Transações, Gráficos, etc) ================== */
 .content-block {
     background-color: var(--bg-content);
     border: 1px solid var(--border);
@@ -295,6 +295,20 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
 .empty-state.show {
     display: block;
 }
+
+/* NOVO: Estilos para área de Gráficos */
+.chart-area {
+    height: 350px; /* Altura padrão para desktop */
+    position: relative;
+    padding: 10px;
+}
+/* Garante que o canvas ocupe a altura/largura disponível */
+.chart-area canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
 
 /* ================== LISTA DE TRANSAÇÕES ================== */
 .transaction-list {
@@ -366,7 +380,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-    /* NOVO: Quebra de linha e alinhamento no mobile */
     flex-wrap: wrap; 
     gap: 16px;
 }
@@ -478,7 +491,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     display: flex;
     align-items: center;
     gap: 12px;
-    /* NOVO: Permite que o filtro ocupe toda a largura no mobile */
     flex-wrap: wrap; 
 }
 .filter-container label {
@@ -495,7 +507,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     font-size: 0.9rem;
     font-weight: 500;
     appearance: none; 
-    /* NOVO: Ocupa o espaço restante */
     flex-grow: 1;
 }
 
@@ -522,13 +533,13 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     background-color: var(--bg-content);
     border-radius: 12px;
     padding: 24px;
-    width: 90%; /* NOVO: Limita a largura em 90% da tela */
+    width: 90%; 
     max-width: 450px;
     border: 1px solid var(--border);
     transform: scale(0.95);
     transition: transform 0.3s;
-    max-height: 90vh; /* NOVO: Garante que o modal caiba na tela */
-    overflow-y: auto; /* NOVO: Permite scroll no modal se for muito grande */
+    max-height: 90vh; 
+    overflow-y: auto; 
 }
 .modal-overlay.show .modal-content {
     transform: scale(1);
@@ -618,12 +629,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
 .radio-group input[value="add"]:checked + i { color: var(--green); }
 .radio-group input[value="expense"]:checked + i,
 .radio-group input[value="withdraw"]:checked + i { color: var(--red); }
-.radio-group input[type="radio"]:checked + i + span,
-.radio-group input[type="radio"]:checked ~ * { color: var(--text-primary); }
-.radio-group input[value="income"]:checked ~ *,
-.radio-group input[value="add"]:checked ~ * { color: var(--green); }
-.radio-group input[value="expense"]:checked ~ *,
-.radio-group input[value="withdraw"]:checked ~ * { color: var(--red); }
 .radio-group label:has(input[value="income"]:checked),
 .radio-group label:has(input[value="add"]:checked) {
     border-color: var(--green); box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
@@ -684,126 +689,112 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     text-decoration: underline dashed 1px;
 }
 
-/* ================== LAYOUT MOBILE ================== */
+/* ================== LAYOUT MOBILE (MAX 768px) ================== */
 
 @media (max-width: 768px) {
-    /* 1. LAYOUT PRINCIPAL */
+    
+    /* 1. LAYOUT PRINCIPAL E BARRA LATERAL (Off-canvas) */
     .app-container {
-        /* Muda de 2 colunas para apenas 1 (o conteúdo) */
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr; /* Apenas uma coluna de conteúdo */
     }
     
-    /* 2. BARRA LATERAL (Sidebar) */
     .sidebar {
-        /* Esconde a barra lateral por padrão em telas pequenas */
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-out;
-        width: 240px; /* Largura menor no mobile */
-        padding-top: 70px; /* Desce o conteúdo para não conflitar com o botão do menu */
-        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
+        position: fixed; /* Fixo para deslizar sobre o conteúdo */
+        transform: translateX(-100%); /* Esconde fora da tela */
+        transition: transform 0.3s ease-in-out;
+        width: 260px; /* Largura padrão */
+        z-index: 500;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.7);
     }
-    /* Estilo quando o menu estiver aberto (usaremos JS para adicionar a classe 'open') */
     .sidebar.open {
-        transform: translateX(0);
+        transform: translateX(0); /* Mostra a sidebar */
     }
 
-    /* 3. CONTEÚDO PRINCIPAL */
-    .main-content {
-        padding: 20px 16px; /* Diminui o padding em telas pequenas */
-    }
-
-    /* 4. BOTÃO HAMBÚRGUER */
+    /* 2. BOTÃO HAMBÚRGUER */
     .menu-toggle {
         display: block; /* Mostra o botão hambúrguer */
     }
+    
+    /* 3. CONTEÚDO PRINCIPAL E HEADER */
+    .main-content {
+        padding: 20px 16px; /* Diminui o padding */
+        padding-top: 70px; /* Adiciona espaço para o botão do menu */
+    }
 
-    /* 5. CABEÇALHO (Header) */
     .main-header {
-        /* Ajusta o grid para empilhar o título/subtítulo sobre as ações */
+        /* Garante que o header se ajuste bem */
         grid-template-columns: 1fr auto;
         grid-template-areas: 
             "title actions"
             "subtitle actions";
         margin-bottom: 24px;
+        align-items: flex-start;
     }
     #page-title {
-        font-size: 1.5rem; /* Diminui o título */
+        font-size: 1.5rem; 
     }
     
-    /* 6. AÇÕES DO HEADER */
     .header-actions {
-        /* Garante que os botões fiquem alinhados corretamente no topo */
+        /* Centraliza as ações no mobile */
         grid-column: 2 / 3;
         grid-row: 1 / 3;
-        flex-direction: column; /* Empilha os botões */
+        flex-direction: column; 
         align-items: flex-end;
         gap: 8px;
     }
     .btn-primary {
-        /* Faz o botão 'Nova Transação' ser mais estreito */
         font-size: 0.9rem;
         padding: 8px 12px;
     }
-
-    /* 7. CARDS DE RESUMO */
+    
+    /* 4. CARDS DE RESUMO */
     .summary-cards {
-        /* Força os cards a se empilharem verticalmente em telas muito pequenas */
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr; /* Cards empilhados */
         gap: 16px;
     }
 
-    /* 8. LISTA DE TRANSAÇÕES */
+    /* 5. LISTA DE TRANSAÇÕES */
     .transaction-list li {
-        /* Simplifica o grid para que as informações caibam melhor */
-        grid-template-columns: auto 1fr auto; /* Ícone, Descrição, Valor */
-        gap: 12px;
-        position: relative;
+        /* Ajusta o grid para 2 linhas no mobile */
+        grid-template-columns: auto 1fr auto; /* Ícone | Descrição | Valor/Lixeira */
+        grid-template-areas: 
+            "icon description delete"
+            "icon category amount";
+        gap: 4px 12px;
+        padding-bottom: 12px;
     }
-    .delete-transaction-btn {
-        /* Posiciona o botão de lixeira no canto direito do item */
-        position: absolute;
-        top: 10px; 
-        right: 0;
+    
+    .list-icon {
+        grid-area: icon;
+        align-self: flex-start;
     }
-    .list-description {
-        /* Permite que a descrição ocupe mais espaço */
-        grid-column: 2 / 3;
+    .list-description span {
+        grid-area: description;
+    }
+    .list-description small {
+        display: none; /* Esconde Categoria/Data da linha principal */
     }
     .list-amount {
-        /* Permite que o valor ocupe mais espaço */
-        grid-column: 3 / 4;
-    }
-    
-    /* Corrige o layout da lista para que a descrição e valor fiquem na mesma linha */
-    .transaction-list li > *:nth-child(2) { /* Descrição */
-        grid-column: 2 / 3;
-        grid-row: 1 / 2;
-    }
-    .transaction-list li > *:nth-child(3) { /* Valor */
-        grid-column: 3 / 4;
-        grid-row: 1 / 2;
+        grid-area: amount;
         text-align: right;
+        font-size: 1rem;
+    }
+    .delete-transaction-btn {
+        grid-area: delete;
+        align-self: flex-start;
     }
     
-    /* 9. METAS */
+    /* 6. PÁGINAS METAS E EXTRATO */
     .goals-list {
-        /* Força as metas a ocuparem 100% da largura */
+        grid-template-columns: 1fr;
+    }
+    .goal-card-actions {
+        /* Ações em 100% de largura */
         grid-template-columns: 1fr;
     }
     
-    .page-header {
-        /* Alinha o título e o botão de orçamento no mobile */
-        justify-content: center;
-        text-align: center;
-    }
-    .page-header h3 {
-        width: 100%;
-    }
-
-    /* 10. MODAL */
-    .modal-content {
-        /* Deixa o modal mais perto do topo no mobile */
-        margin: 20px 0;
-        align-self: flex-start;
+    /* 7. GRÁFICOS */
+    .chart-area {
+        height: 300px; /* Altura menor no mobile */
     }
 }
