@@ -50,7 +50,7 @@
 
         <main class="main-content">
             <header class="main-header">
-                <h1 id="page-title" class="clickable-name">Oi, Colega!</h1>
+                <h2 id="page-title" class="clickable-name">Oi, Colega!</h2>
                 <p id="page-subtitle">Bora economizar</p>
                 <div class="header-actions">
                     <button class="btn btn-primary" id="install-app-btn" style="display: none; background-color: var(--green);">
@@ -121,21 +121,40 @@
 
             <section class="page" id="extrato">
                 <div class="page-header">
-                    <h3>Todas as Transações</h3>
+                    <h3>Transações & Dados</h3>
+                </div>
+
+                <div class="content-block" style="margin-bottom: 24px; border-color: var(--primary);">
+                    <h4 style="margin-bottom: 12px; color: var(--primary);">💾 Backup Completo & Restauração</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 16px;">Salve todos os seus dados (metas, histórico, nome) em um arquivo para restaurar em outro celular.</p>
+                    
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="backup-export-btn">
+                            <i class="ph ph-floppy-disk"></i> Salvar Backup (JSON)
+                        </button>
+                        
+                        <input type="file" id="backup-import-input" accept=".json" style="display: none;">
+                        <button class="btn btn-secondary" id="backup-import-btn">
+                            <i class="ph ph-arrows-clockwise"></i> Restaurar Backup
+                        </button>
+                    </div>
+                </div>
+
+                <div class="page-header">
+                    <h3>Histórico</h3>
                     <div class="filter-container">
-                        <label for="category-filter">Filtrar por:</label>
+                        <label for="category-filter">Filtrar:</label>
                         <select id="category-filter">
                             <option value="all">Todas as Categorias</option>
                         </select>
                         
                         <div style="display: flex; gap: 8px;">
                             <input type="file" id="import-csv-input" accept=".csv" style="display: none;">
-                            
-                            <button class="btn btn-secondary" id="import-transactions-btn" title="Importar CSV">
-                                <i class="ph ph-upload-simple"></i> Importar
+                            <button class="btn btn-secondary" id="import-transactions-btn" title="Importar CSV Bancário">
+                                <i class="ph ph-file-csv"></i> Importar CSV
                             </button>
-                            <button class="btn btn-secondary" id="download-transactions-btn" title="Baixar CSV">
-                                <i class="ph ph-download-simple"></i> Exportar
+                            <button class="btn btn-secondary" id="download-transactions-btn" title="Baixar Relatório CSV">
+                                <i class="ph ph-download-simple"></i> Relatório CSV
                             </button>
                         </div>
                     </div>
@@ -246,10 +265,11 @@
     <script src="script.js"></script>
     
     <script>
+        // Registro do Service Worker para PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(registration => console.log('Service Worker registrado:', registration.scope))
+                    .then(registration => console.log('PWA Service Worker registrado:', registration.scope))
                     .catch(err => console.log('Falha Service Worker:', err));
             });
         }
