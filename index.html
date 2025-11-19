@@ -83,7 +83,7 @@
                 <div class="content-block">
                     <h3>Transações Recentes</h3>
                     <ul class="transaction-list" id="recent-transactions-list">
-                        </ul>
+                    </ul>
                     <div class="empty-state" id="empty-recent-state">
                         <p>Nenhuma transação ainda. Adicione uma para começar!</p>
                     </div>
@@ -99,11 +99,11 @@
                 </div>
 
                 <div class="goals-list" id="goals-list">
-                    </div>
+                </div>
 
                 <div class="empty-state show" id="empty-goals-state">
                     <p>Nenhuma Meta Definida</p>
-                    <p>Clique em 'Criar Meta' para criar sua primeira meta.</p>
+                    <p>Clique em 'Criar Meta' para começar a poupar.</p>
                 </div>
             </section>
 
@@ -114,7 +114,7 @@
                         <label for="category-filter">Filtrar por:</label>
                         <select id="category-filter">
                             <option value="all">Todas as Categorias</option>
-                            </select>
+                        </select>
                         <button class="btn btn-secondary" id="download-transactions-btn">
                             <i class="ph ph-file-csv"></i> Baixar Extrato
                         </button>
@@ -123,7 +123,7 @@
 
                 <div class="content-block">
                     <ul class="transaction-list" id="all-transactions-list">
-                        </ul>
+                    </ul>
                     <div class="empty-state" id="empty-all-state">
                         <p>Você ainda não tem nenhuma transação registrada.</p>
                     </div>
@@ -192,7 +192,7 @@
                 </div>
                 <div class="form-group">
                     <label for="category">Categoria</label>
-                    <input type="text" id="category" list="category-options" placeholder="Ex: Alimentação, Transporte" required>
+                    <input type="text" id="category" list="category-options" placeholder="Selecione ou digite..." required>
                     <datalist id="category-options"></datalist>
                 </div>
                 <button type="submit" class="btn btn-primary">Adicionar Transação</button>
@@ -211,16 +211,16 @@
             <form id="goal-form">
                 <div class="form-group">
                     <label for="goal-name">Nome da Meta</label>
-                    <input type="text" id="goal-name" placeholder="Ex: Gastos de Casa, Transporte Mensal" required>
+                    <input type="text" id="goal-name" placeholder="Ex: Viagem, Carro Novo, Reserva" required>
                 </div>
                 <div class="form-group">
-                    <label for="goal-target">Objetivo</label>
+                    <label for="goal-target">Valor Alvo (Meta)</label>
                     <input type="number" id="goal-target" placeholder="R$ 1000,00" step="0.01" min="0.01" required>
                 </div>
                 <div class="form-group">
                     <label for="goal-current-amount">Valor Atual Depositado</label>
                     <input type="number" id="goal-current-amount" placeholder="0,00" step="0.01" min="0" value="0.00" required>
-                    <small style="color: var(--text-secondary);">Este é o valor inicial que você tem para a meta.</small>
+                    <small style="color: var(--text-secondary);">Este é o valor inicial que você já tem guardado.</small>
                 </div>
                 <button type="submit" class="btn btn-primary">Criar Meta</button>
             </form>
@@ -262,13 +262,13 @@
     <div class="modal-overlay" id="history-modal">
         <div class="modal-content">
             <header class="modal-header">
-                <h2 id="history-modal-title">Histórico de Adições</h2>
+                <h2 id="history-modal-title">Histórico</h2>
                 <button class="close-modal" id="close-history-modal">
                     <i class="ph ph-x"></i>
                 </button>
             </header>
             <ul class="history-list" id="history-list-content">
-                </ul>
+            </ul>
         </div>
     </div>
 

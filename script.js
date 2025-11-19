@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyChartCategory = document.getElementById('empty-chart-category');
     const emptyChartFlow = document.getElementById('empty-chart-flow');
     
-    // Variáveis globais para instâncias do Chart.js
     let categoryChartInstance = null;
     let flowChartInstance = null;
     
@@ -45,8 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const radioExpense = document.getElementById('radio-expense'); 
     const descriptionInput = document.getElementById('description');
     const amountInput = document.getElementById('amount');
-    const categoryInput = document.getElementById('category'); // Agora é o input de texto com datalist
-    const categoryDataList = document.getElementById('category-options'); // NOVO: Elemento datalist para sugestões
+    const categoryInput = document.getElementById('category'); 
+    const categoryDataList = document.getElementById('category-options'); 
 
     // --- Elementos de Tema ---
     const themeToggle = document.getElementById('theme-toggle');
@@ -77,17 +76,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyModalTitle = document.getElementById('history-modal-title');
 
 
-    // ================== ARMAZENAMENTO DE DADOS (LOCAL STORAGE) ==================
+    // ================== ARMAZENAMENTO DE DADOS ==================
 
     let transactions = JSON.parse(localStorage.getItem('meus-trocados-transactions')) || [];
     let goals = JSON.parse(localStorage.getItem('meus-trocados-goals')) || [];
     let userName = localStorage.getItem('meus-trocados-username') || 'Colega';
     
-    // NOVO: Categorias padrão para o Datalist
-    const DEFAULT_CATEGORIES = [
-        'Salário', 'Investimentos', 'Freelance', 
+    // CONFIGURAÇÃO: Categorias separadas
+    const INCOME_CATEGORIES = [
+        'Salário', 'Investimentos', 'Freelance', 'Presente', 
+        'Vendas', 'Reembolso', 'Outras Receitas'
+    ];
+
+    const EXPENSE_CATEGORIES = [
         'Alimentação', 'Transporte', 'Moradia', 'Saúde', 
-        'Educação', 'Lazer', 'Contas', 'Outras Despesas', 'Outras Receitas'
+        'Educação', 'Lazer', 'Contas', 'Compras', 
+        'Assinaturas', 'Pets', 'Outras Despesas'
     ];
 
     const saveTransactions = () => {
@@ -98,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('meus-trocados-goals', JSON.stringify(goals));
     };
 
-    // ================== FUNÇÕES DE FORMATAÇÃO ==================
+    // ================== FUNÇÕES AUXILIARES ==================
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -121,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return getComputedStyle(document.body).getPropertyValue('--bg-content').trim();
     };
 
-    // ================== FUNÇÕES DE NOME E SAUDAÇÃO ==================
+    // ================== INTERFACE E NAVEGAÇÃO ==================
 
     const askForName = () => {
         if (userName === 'Colega') {
@@ -140,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pageTitle.textContent = `Oi, ${userName}!`;
             pageSubtitle.textContent = `Bem-vindo(a) de volta ao seu painel financeiro.`;
         } else if (activePageId === 'economias') {
-            pageTitle.textContent = `Orçamentos`;
-            pageSubtitle.textContent = `Gerencie suas metas de gastos mensais.`;
+            pageTitle.textContent = `Metas Financeiras`; // MUDANÇA AQUI
+            pageSubtitle.textContent = `Gerencie seus objetivos de poupança.`;
         } else if (activePageId === 'extrato') {
             pageTitle.textContent = `Extrato de Transações`;
             pageSubtitle.textContent = `Veja o histórico completo de suas movimentações.`;
@@ -161,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ================== FUNÇÕES DE TRANSAÇÕES ==================
+    // ================== LÓGICA DE TRANSAÇÕES ==================
 
     const calculateSummary = () => {
         const totalIncome = transactions
@@ -223,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             description: description,
             amount: parseFloat(amount),
             type: type,
-            category: category.trim(), // Garante que a categoria seja limpa
+            category: category.trim(),
             date: new Date().toISOString(),
         };
         transactions.unshift(newTransaction);
@@ -247,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = document.querySelector('input[name="type"]:checked').value;
         const description = descriptionInput.value.trim();
         const amount = parseFloat(amountInput.value);
-        const category = categoryInput.value.trim(); // Pega o valor do input de texto (datalist)
+        const category = categoryInput.value.trim(); 
         
         if (description && amount > 0 && category) {
             addTransaction(description, amount, type, category);
@@ -261,16 +265,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ATUALIZA AS OPÇÕES DE CATEGORIA BASEADO NO TIPO
+    const updateCategoryOptions = (type) => {
+        categoryDataList.innerHTML = '';
+        
+        const options = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+        
+        options.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            categoryDataList.appendChild(option);
+        });
+    };
+
     const openTransactionModal = (type = 'income') => {
         if (type === 'expense') {
             radioExpense.checked = true;
+            updateCategoryOptions('expense');
         } else {
             radioIncome.checked = true;
+            updateCategoryOptions('income');
         }
+        
+        // Limpa o campo de categoria ao abrir para forçar nova seleção se mudar o tipo
+        categoryInput.value = ''; 
         transactionModal.classList.add('show');
     };
 
-    // ================== FUNÇÃO DE DOWNLOAD CSV ==================
+    // Listener para mudar as categorias quando clica no Radio Button dentro do modal
+    const handleTypeChange = (e) => {
+        if (e.target.name === 'type') {
+            updateCategoryOptions(e.target.value);
+            categoryInput.value = ''; // Limpa para evitar categoria de Receita em Despesa
+        }
+    };
+
+    // ================== DOWNLOAD CSV ==================
 
     const downloadTransactionsAsCSV = () => {
         if (transactions.length === 0) {
@@ -296,20 +326,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const csvString = csvRows.join('\n');
-        
         const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' }); 
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.setAttribute('href', url);
         a.setAttribute('download', `extrato_meus_trocados_${new Date().toISOString().slice(0, 10)}.csv`);
-        
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
 
-    // ================== FUNÇÕES DE METAS (GOALS) ==================
+    // ================== LÓGICA DE METAS (ECONOMIAS) ==================
 
     const renderGoalsList = () => {
         goalsList.innerHTML = '';
@@ -322,7 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyGoalsState.classList.remove('show');
 
         goals.forEach(goal => {
-            // A redução agora funciona porque o valor de 'withdraw' é negativo
             const currentAmount = goal.history.reduce((sum, item) => sum + item.amount, 0); 
             const percentage = Math.min(100, (currentAmount / goal.target) * 100);
             const isCompleted = currentAmount >= goal.target;
@@ -331,11 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'goal-card';
             card.dataset.id = goal.id;
 
+            // MUDANÇA: Texto "Orçamento" mudado para "Meta"
             card.innerHTML = `
                 <div class="goal-card-header">
                     <div>
                         <h4>${goal.name}</h4>
-                        <small>Orçamento: ${formatCurrency(goal.target)}</small>
+                        <small>Meta: ${formatCurrency(goal.target)}</small>
                     </div>
                     <button class="delete-goal-btn" data-id="${goal.id}" title="Excluir Meta">
                         <i class="ph ph-x-circle"></i>
@@ -344,10 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="goal-progress">
                     <div class="progress-info">
                         <span class="current">${formatCurrency(currentAmount)}</span>
-                        <span class="target">Usado: ${percentage.toFixed(1)}%</span>
+                        <span class="target">${percentage.toFixed(1)}% Concluído</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percentage}%; background-color: ${isCompleted ? 'var(--red)' : 'var(--primary)'};"></div>
+                        <div class="progress-fill" style="width: ${percentage}%; background-color: ${isCompleted ? 'var(--green)' : 'var(--primary)'};"></div>
                     </div>
                 </div>
                 <div class="goal-card-actions">
@@ -398,7 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (name && target > 0 && currentAmount >= 0) {
             addGoal(name, target, currentAmount);
-
             goalForm.reset();
             goalModal.classList.remove('show');
             updateGoalsList();
@@ -407,17 +434,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // CORREÇÃO AQUI: Armazena valor negativo se for 'withdraw'
     const manageGoalAmount = (goalId, type, amount) => {
         const goal = goals.find(g => g.id === goalId);
         if (!goal) return false;
         
-        // NOVO: Converte amount para negativo se type for 'withdraw'
         const finalAmount = type === 'withdraw' ? -parseFloat(amount) : parseFloat(amount);
 
         goal.history.push({
             type: type, 
-            amount: finalAmount, // Usa o valor assinado
+            amount: finalAmount,
             date: new Date().toISOString(),
         });
 
@@ -456,11 +481,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!goal) return;
 
         if (target.classList.contains('delete-goal-btn')) {
-            if (confirm(`Tem certeza que deseja excluir o orçamento "${goal.name}"?`)) {
+            // MUDANÇA: Orçamento -> Meta
+            if (confirm(`Tem certeza que deseja excluir a meta "${goal.name}"?`)) {
                 deleteGoal(goalId);
             }
         } else if (action === 'manage') {
-            manageGoalTitle.textContent = `Gerenciar Orçamento: ${goal.name}`;
+            manageGoalTitle.textContent = `Gerenciar Meta: ${goal.name}`;
             manageGoalIdInput.value = goalId;
             manageGoalAmountInput.value = '';
             manageGoalModal.classList.add('show');
@@ -471,7 +497,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // CORREÇÃO AQUI: Exibe o valor em módulo, mas usa o tipo para rótulo/cor
     const renderGoalHistory = (goal) => {
         historyListContent.innerHTML = '';
         
@@ -485,12 +510,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .forEach(item => {
                 const li = document.createElement('li');
                 
-                // NOVO: Determina o tipo e cor pelo sinal do amount
                 const isAddition = item.amount >= 0; 
                 const typeClass = isAddition ? 'addition' : 'withdrawal';
                 const typeText = isAddition ? 'Adição' : 'Retirada';
-
-                // Exibe o valor absoluto para a visualização
                 const displayAmount = Math.abs(item.amount); 
 
                 li.className = typeClass;
@@ -502,53 +524,33 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
     
-    // ================== FUNÇÕES DE FILTRO E UI ==================
+    // ================== FILTRO E UI ==================
 
-    // NOVO: Função para obter categorias únicas (com defaults e formatação)
-    const getUniqueCategories = (includeDefaults = false) => {
-        let categories = transactions.map(t => t.category.toLowerCase());
-        
-        if (includeDefaults) {
-            // Adiciona as categorias padrão, convertidas para minúsculas
-            const defaultLower = DEFAULT_CATEGORIES.map(c => c.toLowerCase());
-            categories = [...categories, ...defaultLower];
-        }
-        
-        // Remove duplicatas, ordena e formata para exibição
-        return [...new Set(categories)].filter(cat => cat.trim() !== '').sort().map(cat => ({
-            value: cat,
-            label: cat.charAt(0).toUpperCase() + cat.slice(1)
-        }));
+    // Função auxiliar para obter categorias únicas das transações existentes E as padrão
+    const getAvailableCategories = () => {
+        const transactionCats = transactions.map(t => t.category);
+        // Junta tudo e remove duplicatas
+        const allCats = [...new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES, ...transactionCats])];
+        return allCats.sort();
     };
 
-
     const populateCategoryFilter = () => {
-        // Inclui as categorias padrão no filtro de Extrato
-        const categories = getUniqueCategories(true); 
+        const categories = getAvailableCategories();
+        
+        // Salva a seleção atual
+        const currentSelection = categoryFilter.value;
 
         categoryFilter.innerHTML = '<option value="all">Todas as Categorias</option>';
         categories.forEach(cat => {
             const option = document.createElement('option');
-            option.value = cat.value;
-            option.textContent = cat.label;
+            option.value = cat.toLowerCase(); // Value em lowercase para filtro
+            option.textContent = cat;
             categoryFilter.appendChild(option);
         });
+
+        // Tenta restaurar seleção ou volta para 'all'
+        categoryFilter.value = currentSelection && categories.map(c => c.toLowerCase()).includes(currentSelection) ? currentSelection : 'all';
     };
-
-    // NOVO: Função para popular o datalist de categorias
-    const populateCategoryDataList = () => {
-        // Inclui as categorias padrão e as existentes para sugestões
-        const categories = getUniqueCategories(true); 
-        
-        categoryDataList.innerHTML = '';
-
-        categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.label; 
-            categoryDataList.appendChild(option);
-        });
-    };
-
 
     const filterTransactions = () => {
         const selectedCategory = categoryFilter.value;
@@ -559,14 +561,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTransactionList(allList, filteredData, Infinity, true);
     };
     
-    // ================== FUNÇÃO DE GRÁFICOS (IMPLEMENTAÇÃO CHART.JS) ==================
+    // ================== GRÁFICOS (CHART.JS) OTIMIZADO ==================
 
     const renderCharts = () => {
-        // ... (lógica de gráficos mantida do original)
-        // O código foi omitido para manter a concisão, mas permanece inalterado.
-        
-        // --- Gráfico 1: Despesas por Categoria (Rosca/Doughnut) ---
-        const expenseData = transactions.filter(t => t.type === 'expense' && t.amount > 0);
+        // 1. Gráfico de Despesas por Categoria
+        const expenseData = transactions.filter(t => t.type === 'expense');
         
         if (expenseData.length === 0) {
             categoryChartCanvas.style.display = 'none';
@@ -576,17 +575,27 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryChartCanvas.style.display = 'block';
             emptyChartCategory.classList.remove('show');
 
-            const categories = expenseData.reduce((acc, t) => {
-                const category = t.category.charAt(0).toUpperCase() + t.category.slice(1);
-                acc[category] = (acc[category] || 0) + t.amount;
+            // Agrupar valores por categoria
+            const categoriesMap = expenseData.reduce((acc, t) => {
+                // Normaliza a string (Capitalize)
+                const catName = t.category.charAt(0).toUpperCase() + t.category.slice(1).toLowerCase();
+                acc[catName] = (acc[catName] || 0) + t.amount;
                 return acc;
             }, {});
             
-            const labels = Object.keys(categories);
-            const data = Object.values(categories);
+            const labels = Object.keys(categoriesMap);
+            const data = Object.values(categoriesMap);
             
-            const colors = ['#A45EFF', '#EF4444', '#22C55E', '#FFC107', '#00BCD4', '#F44336', '#9C27B0', '#03A9F4', '#FF9800', '#795548', '#607D8B'];
+            // Paleta de cores dinâmica
+            const colors = [
+                '#EF4444', '#F87171', '#B91C1C', // Vermelhos
+                '#F59E0B', '#FBBF24', // Laranjas/Amarelos
+                '#6366F1', '#818CF8', // Azuis/Indigo
+                '#EC4899', '#F472B6', // Rosas
+                '#8B5CF6', '#A78BFA'  // Roxos
+            ];
             const backgroundColors = labels.map((_, i) => colors[i % colors.length]);
+            
             const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
             const bgColor = getBgContent();
 
@@ -611,13 +620,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            labels: {
-                                color: textColor,
-                            },
+                            labels: { color: textColor },
                             position: 'bottom',
                         },
-                        title: {
-                            display: false,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += formatCurrency(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
                         }
                     }
                 }
@@ -625,8 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        // --- Gráfico 2: Fluxo de Caixa Mensal (Barras) ---
-        
+        // 2. Gráfico de Fluxo de Caixa (Mensal)
         if (transactions.length === 0) {
             flowChartCanvas.style.display = 'none';
             emptyChartFlow.classList.add('show');
@@ -653,12 +670,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
 
+        // Ordenar meses
         const sortedMonths = Object.keys(monthlyData).sort();
         
         const flowLabels = sortedMonths.map(my => {
             const [year, month] = my.split('-');
-            const monthName = new Date(year, parseInt(month) - 1, 1).toLocaleString('pt-BR', { month: 'short' });
-            return `${monthName}/${year.slice(2)}`;
+            const date = new Date(year, parseInt(month) - 1, 1);
+            const monthName = date.toLocaleString('pt-BR', { month: 'short' });
+            return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)}/${year.slice(2)}`;
         });
         
         const flowIncomeData = sortedMonths.map(my => monthlyData[my].income);
@@ -666,7 +685,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
         const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim();
-
+        const greenColor = getComputedStyle(document.body).getPropertyValue('--green').trim();
+        const redColor = getComputedStyle(document.body).getPropertyValue('--red').trim();
 
         if (flowChartInstance) {
             flowChartInstance.destroy(); 
@@ -680,39 +700,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     {
                         label: 'Receitas',
                         data: flowIncomeData,
-                        backgroundColor: getComputedStyle(document.body).getPropertyValue('--green').trim(),
+                        backgroundColor: greenColor,
+                        borderRadius: 4
                     },
                     {
                         label: 'Despesas',
                         data: flowExpenseData,
-                        backgroundColor: getComputedStyle(document.body).getPropertyValue('--red').trim(),
+                        backgroundColor: redColor,
+                        borderRadius: 4
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 scales: {
                     x: {
-                        stacked: false,
-                        grid: { color: gridColor },
+                        grid: { color: 'transparent' }, // Limpa grade X
                         ticks: { color: textColor }
                     },
                     y: {
-                        stacked: false,
-                        grid: { color: gridColor },
+                        grid: { color: gridColor, borderDash: [5, 5] },
                         ticks: { 
                             color: textColor,
-                            callback: function(value) {
-                                return formatCurrency(value);
-                            }
-                        }
+                            callback: function(value) { return formatCurrency(value); }
+                        },
+                        beginAtZero: true
                     }
                 },
                 plugins: {
                     legend: {
-                        labels: {
-                             color: textColor,
+                        labels: { color: textColor }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) label += formatCurrency(context.parsed.y);
+                                return label;
+                            }
                         }
                     }
                 }
@@ -721,7 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ================== FUNÇÃO DE ATUALIZAÇÃO GERAL ==================
+    // ================== ATUALIZAÇÃO GERAL ==================
 
     const updateUI = () => {
         const { totalIncome, totalExpense, currentBalance } = calculateSummary();
@@ -730,39 +761,32 @@ document.addEventListener('DOMContentLoaded', () => {
         totalExpenseEl.textContent = formatCurrency(totalExpense);
         currentBalanceEl.textContent = formatCurrency(currentBalance);
 
-        // Renderiza listas
         renderTransactionList(recentList, transactions, 5, true); 
+        
+        // Atualiza filtro de categorias no Extrato
+        populateCategoryFilter();
         filterTransactions(); 
         
-        // Atualiza os gráficos se a página estiver ativa
-        if (document.querySelector('.page.active')?.id === 'graficos') {
-             renderCharts();
-        }
-        
-        // Popula filtro e datalist de categorias
-        populateCategoryFilter();
-        populateCategoryDataList(); // NOVO: Popula o datalist
+        // Atualiza os gráficos se a página estiver ativa ou na inicialização
+        renderCharts();
     };
 
     const updateGoalsList = () => {
         renderGoalsList();
     };
     
-    // ================== GERENCIADORES DE EVENTOS (EVENT LISTENERS) ==================
+    // ================== LISTENERS ==================
 
-    // --- Navegação entre páginas ---
     navButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetId = button.dataset.target;
-
             navButtons.forEach(btn => btn.classList.remove('active'));
             pages.forEach(page => page.classList.remove('active'));
-
             button.classList.add('active');
             document.getElementById(targetId).classList.add('active');
-
             updateGreeting();
             
+            // Força resize dos gráficos ao mudar de aba
             if (targetId === 'graficos') {
                 renderCharts(); 
             }
@@ -773,24 +797,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Nome Clicável ---
     pageTitle.addEventListener('click', handleNameClick);
 
-    // --- Modal Transação ---
+    // Listeners Modal Transação
     openModalBtn.addEventListener('click', () => openTransactionModal('income')); 
-    closeModalBtn.addEventListener('click', () => { transactionModal.classList.remove('show'); });
+    closeModalBtn.addEventListener('click', () => transactionModal.classList.remove('show'));
     transactionModal.addEventListener('click', (e) => {
         if (e.target === transactionModal) transactionModal.classList.remove('show');
     });
     transactionForm.addEventListener('submit', handleTransactionSubmit);
     
+    // Listener específico para troca de tipo (Receita/Despesa) -> Atualiza categorias
+    document.querySelectorAll('input[name="type"]').forEach(radio => {
+        radio.addEventListener('change', handleTypeChange);
+    });
+
     incomeCard.addEventListener('click', () => openTransactionModal('income'));
     expenseCard.addEventListener('click', () => openTransactionModal('expense'));
     
-    // --- Download CSV ---
     downloadTransactionsBtn.addEventListener('click', downloadTransactionsAsCSV);
 
-    // --- Deletar Transação ---
     document.addEventListener('click', (e) => {
         if (e.target.closest('.delete-transaction-btn')) {
             const id = e.target.closest('.delete-transaction-btn').dataset.id;
@@ -800,51 +826,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // --- Filtro de Categoria ---
     categoryFilter.addEventListener('change', filterTransactions);
 
-    // --- Modais de Metas ---
     openGoalModalBtn.addEventListener('click', () => goalModal.classList.add('show'));
     closeGoalModalBtn.addEventListener('click', () => goalModal.classList.remove('show'));
-    goalModal.addEventListener('click', (e) => {
-        if (e.target === goalModal) goalModal.classList.remove('show');
-    });
+    goalModal.addEventListener('click', (e) => { if (e.target === goalModal) goalModal.classList.remove('show'); });
     goalForm.addEventListener('submit', handleGoalSubmit);
 
     closeManageGoalModalBtn.addEventListener('click', () => manageGoalModal.classList.remove('show'));
-    manageGoalModal.addEventListener('click', (e) => {
-        if (e.target === manageGoalModal) manageGoalModal.classList.remove('show');
-    });
+    manageGoalModal.addEventListener('click', (e) => { if (e.target === manageGoalModal) manageGoalModal.classList.remove('show'); });
     manageGoalForm.addEventListener('submit', handleManageGoalSubmit);
 
     closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.remove('show'));
-    historyModal.addEventListener('click', (e) => {
-        if (e.target === historyModal) historyModal.classList.remove('show');
-    });
+    historyModal.addEventListener('click', (e) => { if (e.target === historyModal) historyModal.classList.remove('show'); });
 
     goalsList.addEventListener('click', handleGoalsListClick);
 
-    // --- Alternador de Tema ---
     themeToggle.addEventListener('click', () => {
         document.body.classList.toggle('light-mode');
         const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
         localStorage.setItem('meus-trocados-theme', theme);
-        
-        if (document.querySelector('.page.active')?.id === 'graficos') {
-             renderCharts();
-        }
+        renderCharts(); // Re-renderiza gráficos para ajustar cor da fonte
     });
     
-    // --- Controle de Menu Mobile (Hambúrguer) ---
-    menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-    });
-    
-    // --- Fechar Menu Mobile ao clicar no conteúdo principal ---
+    menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
     mainContent.addEventListener('click', () => {
-        if (sidebar.classList.contains('open') && window.innerWidth <= 768) {
-            sidebar.classList.remove('open');
-        }
+        if (sidebar.classList.contains('open') && window.innerWidth <= 768) sidebar.classList.remove('open');
     });
 
     // ================== INICIALIZAÇÃO ==================
