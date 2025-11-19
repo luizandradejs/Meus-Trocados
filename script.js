@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar'); 
     const menuToggle = document.getElementById('menu-toggle'); 
     const mainContent = document.querySelector('.main-content'); 
-    const installAppBtn = document.getElementById('install-app-btn'); // NOVO
+    const installAppBtn = document.getElementById('install-app-btn'); 
 
     // --- Elementos do Painel ---
     const totalIncomeEl = document.getElementById('total-income');
@@ -21,13 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const incomeCard = document.getElementById('income-card');
     const expenseCard = document.getElementById('expense-card');
 
-    // --- Elementos do Extrato ---
+    // --- Elementos do Extrato & Backup ---
     const allList = document.getElementById('all-transactions-list');
     const emptyAllState = document.getElementById('empty-all-state');
     const categoryFilter = document.getElementById('category-filter'); 
     const downloadTransactionsBtn = document.getElementById('download-transactions-btn');
-    const importTransactionsBtn = document.getElementById('import-transactions-btn'); // NOVO
-    const importCsvInput = document.getElementById('import-csv-input'); // NOVO
+    const importTransactionsBtn = document.getElementById('import-transactions-btn');
+    const importCsvInput = document.getElementById('import-csv-input');
+    
+    // NOVOS SELETORES PARA BACKUP JSON (ITEM 3)
+    const backupExportBtn = document.getElementById('backup-export-btn');
+    const backupImportBtn = document.getElementById('backup-import-btn');
+    const backupImportInput = document.getElementById('backup-import-input');
     
     // --- Elementos de Gráficos (Canvas) ---
     const categoryChartCanvas = document.getElementById('categoryChart');
@@ -63,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const goalNameInput = document.getElementById('goal-name');
     const goalTargetInput = document.getElementById('goal-target');
     const goalCurrentAmountInput = document.getElementById('goal-current-amount');
+    const goalLocationInput = document.getElementById('goal-location');
 
     // --- Modal de Gerenciamento de Metas ---
     const manageGoalModal = document.getElementById('manage-goal-modal');
@@ -105,17 +111,18 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('meus-trocados-goals', JSON.stringify(goals));
     };
 
-    // ================== PWA INSTALL PROMPT ==================
+    // ================== PWA INSTALL PROMPT (ITEM 2) ==================
     
     let deferredPrompt;
 
     // Escuta o evento que dispara quando o Chrome detecta que pode instalar o app
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Previne a barra automática do Chrome (queremos controlar quando aparece)
+        // Previne a barra automática do Chrome
         e.preventDefault();
         deferredPrompt = e;
         // Mostra o botão de instalar
         installAppBtn.style.display = 'inline-flex';
+        console.log("Evento beforeinstallprompt disparado. Botão exibido.");
     });
 
     installAppBtn.addEventListener('click', async () => {
@@ -143,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        // Tenta criar data, se inválida retorna original
         const d = new Date(dateString);
         return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('pt-BR', options);
     };
@@ -161,11 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const askForName = () => {
         if (userName === 'Colega') {
-            const name = prompt("Olá! Qual é o seu nome?");
-            if (name && name.trim() !== "") {
-                userName = name.trim();
-                localStorage.setItem('meus-trocados-username', userName);
-            }
+            // Pequeno delay para não bloquear renderização
+            setTimeout(() => {
+                const name = prompt("Olá! Qual é o seu nome?");
+                if (name && name.trim() !== "") {
+                    userName = name.trim();
+                    localStorage.setItem('meus-trocados-username', userName);
+                    updateGreeting();
+                }
+            }, 500);
         }
     };
 
@@ -174,7 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activePageId === 'painel') {
             pageTitle.textContent = `Oi, ${userName}!`;
-            pageSubtitle.textContent = `Bem-vindo(a) de volta ao seu painel financeiro.`;
+            // ITEM 4: MUDANÇA DE TEXTO SOLICITADA
+            pageSubtitle.textContent = `Bora Economizar.`; 
         } else if (activePageId === 'economias') {
             pageTitle.textContent = `Metas Financeiras`; 
             pageSubtitle.textContent = `Gerencie seus objetivos de poupança.`;
@@ -255,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addTransaction = (description, amount, type, category, date = null) => {
         const newTransaction = {
-            id: Date.now() + Math.floor(Math.random() * 1000), // Random adicionado para evitar ID duplicado na importação rápida
+            id: Date.now() + Math.floor(Math.random() * 1000),
             description: description,
             amount: parseFloat(amount),
             type: type,
@@ -329,7 +340,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ================== IMPORTAR E EXPORTAR CSV ==================
+    // ================== BACKUP JSON AVANÇADO (ITEM 3) ==================
+
+    const exportBackupJSON = () => {
+        if (transactions.length === 0 && goals.length === 0) {
+            alert("Você não tem dados para salvar ainda.");
+            return;
+        }
+
+        const backupData = {
+            app: "Meus Trocados",
+            version: "1.0",
+            exportedAt: new Date().toISOString(),
+            username: userName,
+            transactions: transactions,
+            goals: goals
+        };
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `backup_meus_trocados_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(downloadAnchorNode); // Required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
+    const importBackupJSON = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                // Validação básica para ver se é um backup válido
+                if (data.app === "Meus Trocados" && Array.isArray(data.transactions) && Array.isArray(data.goals)) {
+                    
+                    if (confirm(`Restaurar backup de ${data.username || 'usuário'} criado em ${formatDate(data.exportedAt)}? \nISSO SUBSTITUIRÁ SEUS DADOS ATUAIS.`)) {
+                        transactions = data.transactions;
+                        goals = data.goals;
+                        if (data.username) userName = data.username;
+
+                        saveTransactions();
+                        saveGoals();
+                        localStorage.setItem('meus-trocados-username', userName);
+
+                        alert("Dados restaurados com sucesso! A página será recarregada.");
+                        location.reload();
+                    }
+                } else {
+                    alert("Arquivo de backup inválido.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao ler o arquivo JSON.");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // Limpa input
+    };
+
+    // Listeners do Backup
+    backupExportBtn.addEventListener('click', exportBackupJSON);
+    backupImportBtn.addEventListener('click', () => backupImportInput.click());
+    backupImportInput.addEventListener('change', importBackupJSON);
+
+
+    // ================== IMPORTAR E EXPORTAR CSV (LEGADO) ==================
 
     const downloadTransactionsAsCSV = () => {
         if (transactions.length === 0) {
@@ -349,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `"${typeText}"`,
                 `"${t.description.replace(/"/g, '""')}"`, 
                 `"${t.category.replace(/"/g, '""')}"`,
-                `"${amountFormatted}"` // Aspas no valor para proteger
+                `"${amountFormatted}"` 
             ];
             csvRows.push(row.join(';'));
         });
@@ -366,24 +445,20 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     };
 
-    // DISPARAR INPUT FILE
     importTransactionsBtn.addEventListener('click', () => {
         importCsvInput.click();
     });
 
-    // PROCESSAR ARQUIVO SELECIONADO
     importCsvInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        
         reader.onload = function(e) {
             const text = e.target.result;
             processCSVData(text);
-            importCsvInput.value = ''; // Limpar input para permitir re-seleção do mesmo arquivo
+            importCsvInput.value = ''; 
         };
-        
         reader.readAsText(file);
     });
 
@@ -392,40 +467,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const lines = csvText.split('\n');
             let count = 0;
 
-            // Começa do 1 para pular o cabeçalho
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                // Regex simples para separar por ponto e vírgula respeitando aspas
-                // Nota: CSV parsing complexo idealmente usa bibliotecas, mas aqui faremos um split simples
-                // assumindo que o formato é o gerado pelo próprio app: "Data";"Tipo";"Desc";"Cat";"Val"
-                
-                // Remove aspas iniciais e finais de cada campo se existirem
                 const cleanLine = line.replace(/"/g, ''); 
                 const parts = cleanLine.split(';');
 
                 if (parts.length >= 5) {
-                    // Mapeamento (Baseado na ordem do Header: Data, Tipo, Descricao, Categoria, Valor)
                     const dateRaw = parts[0];
                     const typeRaw = parts[1];
                     const description = parts[2];
                     const category = parts[3];
                     const amountRaw = parts[4];
 
-                    // Tratamento de Tipo
                     const type = (typeRaw === 'RECEITA' || typeRaw === 'income') ? 'income' : 'expense';
-
-                    // Tratamento de Valor (100,50 -> 100.50)
                     const amount = parseFloat(amountRaw.replace(',', '.'));
 
-                    // Tratamento de Data (dd/mm/yyyy hh:mm:ss -> ISO)
-                    // Se falhar a conversão, usa Data Atual
                     let dateIso = new Date().toISOString();
                     if (dateRaw.includes('/')) {
                         const [dPart, tPart] = dateRaw.split(' ');
                         const [day, month, year] = dPart.split('/');
-                        // Formato MM/DD/YYYY para o Date constructor
                         const dateObj = new Date(`${month}/${day}/${year} ${tPart || ''}`);
                         if (!isNaN(dateObj)) dateIso = dateObj.toISOString();
                     }
@@ -438,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (count > 0) {
-                alert(`${count} transações importadas com sucesso!`);
+                alert(`${count} transações importadas com sucesso via CSV!`);
                 updateUI();
             } else {
                 alert("Nenhuma transação válida encontrada ou formato incorreto.");
@@ -446,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error(error);
-            alert("Erro ao processar o arquivo. Verifique se é um CSV válido.");
+            alert("Erro ao processar o arquivo CSV.");
         }
     };
 
@@ -475,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="goal-card-header">
                     <div>
                         <h4>${goal.name}</h4>
-                        <small>Meta: ${formatCurrency(goal.target)}</small>
+                        <small><i class="ph ph-bank"></i> ${goal.location || 'Geral'}</small>
                     </div>
                     <button class="delete-goal-btn" data-id="${goal.id}" title="Excluir Meta">
                         <i class="ph ph-x-circle"></i>
@@ -484,11 +546,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="goal-progress">
                     <div class="progress-info">
                         <span class="current">${formatCurrency(currentAmount)}</span>
-                        <span class="target">${percentage.toFixed(1)}% Concluído</span>
+                        <span class="target">Meta: ${formatCurrency(goal.target)}</span>
                     </div>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: ${percentage}%; background-color: ${isCompleted ? 'var(--green)' : 'var(--primary)'};"></div>
                     </div>
+                    <small style="color: var(--text-secondary); font-size: 0.8rem; text-align: right;">${percentage.toFixed(1)}%</small>
                 </div>
                 <div class="goal-card-actions">
                     <button class="btn btn-secondary manage-goal-btn" data-id="${goal.id}" data-action="manage">
@@ -503,11 +566,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const addGoal = (name, target, currentAmount) => {
+    const addGoal = (name, target, currentAmount, location) => {
         const newGoal = {
             id: Date.now(),
             name: name,
             target: parseFloat(target),
+            location: location,
             history: [{ 
                 type: 'add', 
                 amount: parseFloat(currentAmount), 
@@ -533,11 +597,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const name = goalNameInput.value.trim();
+        const location = goalLocationInput.value.trim();
         const target = parseFloat(goalTargetInput.value);
         const currentAmount = parseFloat(goalCurrentAmountInput.value);
         
         if (name && target > 0 && currentAmount >= 0) {
-            addGoal(name, target, currentAmount);
+            addGoal(name, target, currentAmount, location);
             goalForm.reset();
             goalModal.classList.remove('show');
             updateGoalsList();
@@ -667,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTransactionList(allList, filteredData, Infinity, true);
     };
     
-    // ================== GRÁFICOS (CHART.JS) OTIMIZADO ==================
+    // ================== GRÁFICOS (CHART.JS) ==================
 
     const renderCharts = () => {
         const expenseData = transactions.filter(t => t.type === 'expense');
@@ -873,7 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGoalsList();
     };
     
-    // ================== LISTENERS ==================
+    // ================== LISTENERS GERAIS ==================
 
     navButtons.forEach(button => {
         button.addEventListener('click', () => {

@@ -1,33 +1,32 @@
-const CACHE_NAME = 'meus-trocados-v1';
+const CACHE_NAME = 'meus-trocados-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './script.js',
   './manifest.json',
-  // Bibliotecas externas (CDN) para garantir funcionamento offline
+  // Bibliotecas externas essenciais
   'https://unpkg.com/@phosphor-icons/web',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
-// 1. Instalação: Armazena arquivos estáticos no cache
+// 1. Instalação
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching all: app shell and content');
+      console.log('[Service Worker] Caching app shell');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
 });
 
-// 2. Ativação: Limpa caches antigos se houver atualização
+// 2. Ativação (Limpeza de cache antigo)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('[Service Worker] Removing old cache', key);
             return caches.delete(key);
           }
         })
@@ -37,33 +36,33 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// 3. Interceptação de Requisições (Fetch): Estratégia Cache First, falling back to Network
-// Tenta pegar do cache. Se não tiver, pega da rede e salva no cache (para arquivos dinâmicos como fontes)
+// 3. Interceptação (Cache First)
 self.addEventListener('fetch', (event) => {
+  // Ignora requests que não sejam GET ou que sejam de chrome-extension
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Se está no cache, retorna o cache
+      // Retorna cache se existir
       if (response) {
         return response;
       }
       
-      // Se não está, faz a requisição na rede
+      // Se não, busca na rede
       return fetch(event.request).then((networkResponse) => {
-        // Verifica se a resposta é válida
+        // Verifica se resposta é válida
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' && networkResponse.type !== 'cors') {
           return networkResponse;
         }
 
-        // Clona a resposta para salvar no cache também
+        // Clona e salva no cache
         const responseToCache = networkResponse.clone();
-
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
 
         return networkResponse;
       }).catch(() => {
-        // Se falhar (sem internet e sem cache), poderia retornar uma página offline customizada aqui
         console.log('Sem internet e recurso não cacheado');
       });
     })

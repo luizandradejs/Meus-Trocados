@@ -52,6 +52,7 @@
             <header class="main-header">
                 <h2 id="page-title" class="clickable-name">Oi, Colega!</h2>
                 <p id="page-subtitle">Bora economizar</p>
+                
                 <div class="header-actions">
                     <button class="btn btn-primary" id="install-app-btn" style="display: none; background-color: var(--green);">
                         <i class="ph ph-download-simple"></i> Instalar App
@@ -126,7 +127,7 @@
 
                 <div class="content-block" style="margin-bottom: 24px; border-color: var(--primary);">
                     <h4 style="margin-bottom: 12px; color: var(--primary);">💾 Backup Completo & Restauração</h4>
-                    <p style="font-size: 0.9rem; margin-bottom: 16px;">Salve todos os seus dados (metas, histórico, nome) em um arquivo para restaurar em outro celular.</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 16px;">Trocou de celular? Salve um arquivo JSON aqui e restaure no novo aparelho.</p>
                     
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                         <button class="btn btn-secondary" id="backup-export-btn">
@@ -265,7 +266,7 @@
     <script src="script.js"></script>
     
     <script>
-        // Registro do Service Worker para PWA
+        // Registro do Service Worker para PWA (ITEM 1)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
