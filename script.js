@@ -6,10 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageTitle = document.getElementById('page-title');
     const pageSubtitle = document.getElementById('page-subtitle');
     
-    // --- Elementos de Layout/Mobile ---
+    // --- Elementos de Layout/Mobile/PWA ---
     const sidebar = document.getElementById('sidebar'); 
     const menuToggle = document.getElementById('menu-toggle'); 
     const mainContent = document.querySelector('.main-content'); 
+    const installAppBtn = document.getElementById('install-app-btn'); // NOVO
 
     // --- Elementos do Painel ---
     const totalIncomeEl = document.getElementById('total-income');
@@ -25,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyAllState = document.getElementById('empty-all-state');
     const categoryFilter = document.getElementById('category-filter'); 
     const downloadTransactionsBtn = document.getElementById('download-transactions-btn');
+    const importTransactionsBtn = document.getElementById('import-transactions-btn'); // NOVO
+    const importCsvInput = document.getElementById('import-csv-input'); // NOVO
     
     // --- Elementos de Gráficos (Canvas) ---
     const categoryChartCanvas = document.getElementById('categoryChart');
@@ -102,6 +105,33 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('meus-trocados-goals', JSON.stringify(goals));
     };
 
+    // ================== PWA INSTALL PROMPT ==================
+    
+    let deferredPrompt;
+
+    // Escuta o evento que dispara quando o Chrome detecta que pode instalar o app
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Previne a barra automática do Chrome (queremos controlar quando aparece)
+        e.preventDefault();
+        deferredPrompt = e;
+        // Mostra o botão de instalar
+        installAppBtn.style.display = 'inline-flex';
+    });
+
+    installAppBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            // Mostra o prompt nativo
+            deferredPrompt.prompt();
+            // Espera a escolha do usuário
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            // Limpa a variável
+            deferredPrompt = null;
+            // Esconde o botão
+            installAppBtn.style.display = 'none';
+        }
+    });
+
     // ================== FUNÇÕES AUXILIARES ==================
 
     const formatCurrency = (value) => {
@@ -113,7 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('pt-BR', options);
+        // Tenta criar data, se inválida retorna original
+        const d = new Date(dateString);
+        return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('pt-BR', options);
     };
 
     const formatDateTimeCSV = (dateString) => {
@@ -144,11 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
             pageTitle.textContent = `Oi, ${userName}!`;
             pageSubtitle.textContent = `Bem-vindo(a) de volta ao seu painel financeiro.`;
         } else if (activePageId === 'economias') {
-            pageTitle.textContent = `Metas Financeiras`; // MUDANÇA AQUI
+            pageTitle.textContent = `Metas Financeiras`; 
             pageSubtitle.textContent = `Gerencie seus objetivos de poupança.`;
         } else if (activePageId === 'extrato') {
             pageTitle.textContent = `Extrato de Transações`;
-            pageSubtitle.textContent = `Veja o histórico completo de suas movimentações.`;
+            pageSubtitle.textContent = `Veja e gerencie seu histórico.`;
         } else if (activePageId === 'graficos') {
             pageTitle.textContent = `Dashboard`;
             pageSubtitle.textContent = `Análise visual de suas receitas e despesas.`;
@@ -221,14 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const addTransaction = (description, amount, type, category) => {
+    const addTransaction = (description, amount, type, category, date = null) => {
         const newTransaction = {
-            id: Date.now(),
+            id: Date.now() + Math.floor(Math.random() * 1000), // Random adicionado para evitar ID duplicado na importação rápida
             description: description,
             amount: parseFloat(amount),
             type: type,
             category: category.trim(),
-            date: new Date().toISOString(),
+            date: date ? date : new Date().toISOString(),
         };
         transactions.unshift(newTransaction);
         saveTransactions();
@@ -286,21 +318,18 @@ document.addEventListener('DOMContentLoaded', () => {
             radioIncome.checked = true;
             updateCategoryOptions('income');
         }
-        
-        // Limpa o campo de categoria ao abrir para forçar nova seleção se mudar o tipo
         categoryInput.value = ''; 
         transactionModal.classList.add('show');
     };
 
-    // Listener para mudar as categorias quando clica no Radio Button dentro do modal
     const handleTypeChange = (e) => {
         if (e.target.name === 'type') {
             updateCategoryOptions(e.target.value);
-            categoryInput.value = ''; // Limpa para evitar categoria de Receita em Despesa
+            categoryInput.value = ''; 
         }
     };
 
-    // ================== DOWNLOAD CSV ==================
+    // ================== IMPORTAR E EXPORTAR CSV ==================
 
     const downloadTransactionsAsCSV = () => {
         if (transactions.length === 0) {
@@ -320,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `"${typeText}"`,
                 `"${t.description.replace(/"/g, '""')}"`, 
                 `"${t.category.replace(/"/g, '""')}"`,
-                amountFormatted
+                `"${amountFormatted}"` // Aspas no valor para proteger
             ];
             csvRows.push(row.join(';'));
         });
@@ -335,6 +364,90 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    // DISPARAR INPUT FILE
+    importTransactionsBtn.addEventListener('click', () => {
+        importCsvInput.click();
+    });
+
+    // PROCESSAR ARQUIVO SELECIONADO
+    importCsvInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const text = e.target.result;
+            processCSVData(text);
+            importCsvInput.value = ''; // Limpar input para permitir re-seleção do mesmo arquivo
+        };
+        
+        reader.readAsText(file);
+    });
+
+    const processCSVData = (csvText) => {
+        try {
+            const lines = csvText.split('\n');
+            let count = 0;
+
+            // Começa do 1 para pular o cabeçalho
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // Regex simples para separar por ponto e vírgula respeitando aspas
+                // Nota: CSV parsing complexo idealmente usa bibliotecas, mas aqui faremos um split simples
+                // assumindo que o formato é o gerado pelo próprio app: "Data";"Tipo";"Desc";"Cat";"Val"
+                
+                // Remove aspas iniciais e finais de cada campo se existirem
+                const cleanLine = line.replace(/"/g, ''); 
+                const parts = cleanLine.split(';');
+
+                if (parts.length >= 5) {
+                    // Mapeamento (Baseado na ordem do Header: Data, Tipo, Descricao, Categoria, Valor)
+                    const dateRaw = parts[0];
+                    const typeRaw = parts[1];
+                    const description = parts[2];
+                    const category = parts[3];
+                    const amountRaw = parts[4];
+
+                    // Tratamento de Tipo
+                    const type = (typeRaw === 'RECEITA' || typeRaw === 'income') ? 'income' : 'expense';
+
+                    // Tratamento de Valor (100,50 -> 100.50)
+                    const amount = parseFloat(amountRaw.replace(',', '.'));
+
+                    // Tratamento de Data (dd/mm/yyyy hh:mm:ss -> ISO)
+                    // Se falhar a conversão, usa Data Atual
+                    let dateIso = new Date().toISOString();
+                    if (dateRaw.includes('/')) {
+                        const [dPart, tPart] = dateRaw.split(' ');
+                        const [day, month, year] = dPart.split('/');
+                        // Formato MM/DD/YYYY para o Date constructor
+                        const dateObj = new Date(`${month}/${day}/${year} ${tPart || ''}`);
+                        if (!isNaN(dateObj)) dateIso = dateObj.toISOString();
+                    }
+
+                    if (description && !isNaN(amount)) {
+                        addTransaction(description, amount, type, category, dateIso);
+                        count++;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                alert(`${count} transações importadas com sucesso!`);
+                updateUI();
+            } else {
+                alert("Nenhuma transação válida encontrada ou formato incorreto.");
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao processar o arquivo. Verifique se é um CSV válido.");
+        }
     };
 
     // ================== LÓGICA DE METAS (ECONOMIAS) ==================
@@ -358,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'goal-card';
             card.dataset.id = goal.id;
 
-            // MUDANÇA: Texto "Orçamento" mudado para "Meta"
             card.innerHTML = `
                 <div class="goal-card-header">
                     <div>
@@ -481,7 +593,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!goal) return;
 
         if (target.classList.contains('delete-goal-btn')) {
-            // MUDANÇA: Orçamento -> Meta
             if (confirm(`Tem certeza que deseja excluir a meta "${goal.name}"?`)) {
                 deleteGoal(goalId);
             }
@@ -526,29 +637,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ================== FILTRO E UI ==================
 
-    // Função auxiliar para obter categorias únicas das transações existentes E as padrão
     const getAvailableCategories = () => {
         const transactionCats = transactions.map(t => t.category);
-        // Junta tudo e remove duplicatas
         const allCats = [...new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES, ...transactionCats])];
         return allCats.sort();
     };
 
     const populateCategoryFilter = () => {
         const categories = getAvailableCategories();
-        
-        // Salva a seleção atual
         const currentSelection = categoryFilter.value;
 
         categoryFilter.innerHTML = '<option value="all">Todas as Categorias</option>';
         categories.forEach(cat => {
             const option = document.createElement('option');
-            option.value = cat.toLowerCase(); // Value em lowercase para filtro
+            option.value = cat.toLowerCase(); 
             option.textContent = cat;
             categoryFilter.appendChild(option);
         });
 
-        // Tenta restaurar seleção ou volta para 'all'
         categoryFilter.value = currentSelection && categories.map(c => c.toLowerCase()).includes(currentSelection) ? currentSelection : 'all';
     };
 
@@ -564,7 +670,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ================== GRÁFICOS (CHART.JS) OTIMIZADO ==================
 
     const renderCharts = () => {
-        // 1. Gráfico de Despesas por Categoria
         const expenseData = transactions.filter(t => t.type === 'expense');
         
         if (expenseData.length === 0) {
@@ -575,9 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryChartCanvas.style.display = 'block';
             emptyChartCategory.classList.remove('show');
 
-            // Agrupar valores por categoria
             const categoriesMap = expenseData.reduce((acc, t) => {
-                // Normaliza a string (Capitalize)
                 const catName = t.category.charAt(0).toUpperCase() + t.category.slice(1).toLowerCase();
                 acc[catName] = (acc[catName] || 0) + t.amount;
                 return acc;
@@ -586,13 +689,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const labels = Object.keys(categoriesMap);
             const data = Object.values(categoriesMap);
             
-            // Paleta de cores dinâmica
             const colors = [
-                '#EF4444', '#F87171', '#B91C1C', // Vermelhos
-                '#F59E0B', '#FBBF24', // Laranjas/Amarelos
-                '#6366F1', '#818CF8', // Azuis/Indigo
-                '#EC4899', '#F472B6', // Rosas
-                '#8B5CF6', '#A78BFA'  // Roxos
+                '#EF4444', '#F87171', '#B91C1C', 
+                '#F59E0B', '#FBBF24', 
+                '#6366F1', '#818CF8', 
+                '#EC4899', '#F472B6', 
+                '#8B5CF6', '#A78BFA' 
             ];
             const backgroundColors = labels.map((_, i) => colors[i % colors.length]);
             
@@ -643,7 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        // 2. Gráfico de Fluxo de Caixa (Mensal)
         if (transactions.length === 0) {
             flowChartCanvas.style.display = 'none';
             emptyChartFlow.classList.add('show');
@@ -670,7 +771,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
 
-        // Ordenar meses
         const sortedMonths = Object.keys(monthlyData).sort();
         
         const flowLabels = sortedMonths.map(my => {
@@ -720,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 scales: {
                     x: {
-                        grid: { color: 'transparent' }, // Limpa grade X
+                        grid: { color: 'transparent' }, 
                         ticks: { color: textColor }
                     },
                     y: {
@@ -763,11 +863,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderTransactionList(recentList, transactions, 5, true); 
         
-        // Atualiza filtro de categorias no Extrato
         populateCategoryFilter();
         filterTransactions(); 
         
-        // Atualiza os gráficos se a página estiver ativa ou na inicialização
         renderCharts();
     };
 
@@ -786,7 +884,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(targetId).classList.add('active');
             updateGreeting();
             
-            // Força resize dos gráficos ao mudar de aba
             if (targetId === 'graficos') {
                 renderCharts(); 
             }
@@ -799,7 +896,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pageTitle.addEventListener('click', handleNameClick);
 
-    // Listeners Modal Transação
     openModalBtn.addEventListener('click', () => openTransactionModal('income')); 
     closeModalBtn.addEventListener('click', () => transactionModal.classList.remove('show'));
     transactionModal.addEventListener('click', (e) => {
@@ -807,7 +903,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     transactionForm.addEventListener('submit', handleTransactionSubmit);
     
-    // Listener específico para troca de tipo (Receita/Despesa) -> Atualiza categorias
     document.querySelectorAll('input[name="type"]').forEach(radio => {
         radio.addEventListener('change', handleTypeChange);
     });
@@ -846,7 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('light-mode');
         const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
         localStorage.setItem('meus-trocados-theme', theme);
-        renderCharts(); // Re-renderiza gráficos para ajustar cor da fonte
+        renderCharts();
     });
     
     menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
