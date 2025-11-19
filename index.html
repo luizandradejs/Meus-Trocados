@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meus Trocados</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#A45EFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Meus Trocados">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -164,37 +172,19 @@
         <div class="modal-content">
             <header class="modal-header">
                 <h2>Nova Transação</h2>
-                <button class="close-modal" id="close-transaction-modal">
-                    <i class="ph ph-x"></i>
-                </button>
+                <button class="close-modal" id="close-transaction-modal"><i class="ph ph-x"></i></button>
             </header>
             <form id="transaction-form">
                 <div class="form-group">
                     <label>Tipo</label>
                     <div class="radio-group">
-                        <label>
-                            <input type="radio" name="type" value="income" id="radio-income" checked>
-                            <i class="ph ph-arrow-circle-up"></i> Receita
-                        </label>
-                        <label>
-                            <input type="radio" name="type" value="expense" id="radio-expense">
-                            <i class="ph ph-arrow-circle-down"></i> Despesa
-                        </label>
+                        <label><input type="radio" name="type" value="income" id="radio-income" checked><i class="ph ph-arrow-circle-up"></i> Receita</label>
+                        <label><input type="radio" name="type" value="expense" id="radio-expense"><i class="ph ph-arrow-circle-down"></i> Despesa</label>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="description">Descrição</label>
-                    <input type="text" id="description" placeholder="Ex: Salário, Aluguel, Supermercado" required>
-                </div>
-                <div class="form-group">
-                    <label for="amount">Valor</label>
-                    <input type="number" id="amount" placeholder="100,00" step="0.01" min="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="category">Categoria</label>
-                    <input type="text" id="category" list="category-options" placeholder="Selecione ou digite..." required>
-                    <datalist id="category-options"></datalist>
-                </div>
+                <div class="form-group"><label for="description">Descrição</label><input type="text" id="description" placeholder="Ex: Salário" required></div>
+                <div class="form-group"><label for="amount">Valor</label><input type="number" id="amount" placeholder="100,00" step="0.01" min="0.01" required></div>
+                <div class="form-group"><label for="category">Categoria</label><input type="text" id="category" list="category-options" placeholder="Selecione..." required><datalist id="category-options"></datalist></div>
                 <button type="submit" class="btn btn-primary">Adicionar Transação</button>
             </form>
         </div>
@@ -204,29 +194,13 @@
         <div class="modal-content">
             <header class="modal-header">
                 <h2>Definir Meta</h2>
-                <button class="close-modal" id="close-goal-modal">
-                    <i class="ph ph-x"></i>
-                </button>
+                <button class="close-modal" id="close-goal-modal"><i class="ph ph-x"></i></button>
             </header>
             <form id="goal-form">
-                <div class="form-group">
-                    <label for="goal-name">Nome da Meta</label>
-                    <input type="text" id="goal-name" placeholder="Ex: Viagem, Carro Novo, Reserva" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="goal-location">Onde está guardado?</label>
-                    <input type="text" id="goal-location" placeholder="Ex: Nubank, Cofrinho, XP, Colchão" required>
-                </div>
-                <div class="form-group">
-                    <label for="goal-target">Valor Alvo (Meta)</label>
-                    <input type="number" id="goal-target" placeholder="R$ 1000,00" step="0.01" min="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="goal-current-amount">Valor Atual Depositado</label>
-                    <input type="number" id="goal-current-amount" placeholder="0,00" step="0.01" min="0" value="0.00" required>
-                    <small style="color: var(--text-secondary);">Este é o valor inicial que você já tem guardado.</small>
-                </div>
+                <div class="form-group"><label for="goal-name">Nome da Meta</label><input type="text" id="goal-name" placeholder="Ex: Viagem" required></div>
+                <div class="form-group"><label for="goal-location">Onde está guardado?</label><input type="text" id="goal-location" placeholder="Ex: Nubank" required></div>
+                <div class="form-group"><label for="goal-target">Valor Alvo</label><input type="number" id="goal-target" placeholder="R$ 1000,00" step="0.01" min="0.01" required></div>
+                <div class="form-group"><label for="goal-current-amount">Valor Atual</label><input type="number" id="goal-current-amount" placeholder="0,00" step="0.01" min="0" value="0.00" required></div>
                 <button type="submit" class="btn btn-primary">Criar Meta</button>
             </form>
         </div>
@@ -234,30 +208,16 @@
 
     <div class="modal-overlay" id="manage-goal-modal">
         <div class="modal-content">
-            <header class="modal-header">
-                <h2 id="manage-goal-title">Gerenciar Meta</h2>
-                <button class="close-modal" id="close-manage-goal-modal">
-                    <i class="ph ph-x"></i>
-                </button>
-            </header>
+            <header class="modal-header"><h2 id="manage-goal-title">Gerenciar Meta</h2><button class="close-modal" id="close-manage-goal-modal"><i class="ph ph-x"></i></button></header>
             <form id="manage-goal-form">
                 <div class="form-group">
                     <label>Ação</label>
                     <div class="radio-group">
-                        <label>
-                            <input type="radio" name="manage-type" value="add" id="radio-add" checked>
-                            <i class="ph ph-plus-circle"></i> Adicionar
-                        </label>
-                        <label>
-                            <input type="radio" name="manage-type" value="withdraw" id="radio-withdraw">
-                            <i class="ph ph-minus-circle"></i> Retirar
-                        </label>
+                        <label><input type="radio" name="manage-type" value="add" id="radio-add" checked><i class="ph ph-plus-circle"></i> Adicionar</label>
+                        <label><input type="radio" name="manage-type" value="withdraw" id="radio-withdraw"><i class="ph ph-minus-circle"></i> Retirar</label>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="manage-goal-amount">Valor</label>
-                    <input type="number" id="manage-goal-amount" placeholder="50,00" step="0.01" min="0.01" required>
-                </div>
+                <div class="form-group"><label for="manage-goal-amount">Valor</label><input type="number" id="manage-goal-amount" placeholder="50,00" step="0.01" min="0.01" required></div>
                 <button type="submit" class="btn btn-primary">Salvar</button>
                 <input type="hidden" id="manage-goal-id">
             </form>
@@ -266,17 +226,25 @@
 
     <div class="modal-overlay" id="history-modal">
         <div class="modal-content">
-            <header class="modal-header">
-                <h2 id="history-modal-title">Histórico</h2>
-                <button class="close-modal" id="close-history-modal">
-                    <i class="ph ph-x"></i>
-                </button>
-            </header>
-            <ul class="history-list" id="history-list-content">
-            </ul>
+            <header class="modal-header"><h2 id="history-modal-title">Histórico</h2><button class="close-modal" id="close-history-modal"><i class="ph ph-x"></i></button></header>
+            <ul class="history-list" id="history-list-content"></ul>
         </div>
     </div>
 
     <script src="script.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar o Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
