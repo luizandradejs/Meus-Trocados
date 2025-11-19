@@ -14,7 +14,7 @@
     --bg-sidebar: #191722;
     --bg-content: #1F1D2B;
     --bg-card: #252836;
-    --primary: #A45EFF; /* Roxo principal */
+    --primary: #A45EFF;
     --primary-hover: #BB86FC;
     --text-primary: #FFFFFF;
     --text-secondary: #ABABAD;
@@ -725,7 +725,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     opacity: 1;
 }
 
-
 /* ================== LAYOUT MOBILE (MAX 768px) ================== */
 @media (max-width: 768px) {
     .app-container {
@@ -832,5 +831,14 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     }
     .filter-container label {
         width: 100%; 
+    }
+
+    /* AJUSTE DO RODAPÉ NO MOBILE */
+    .backup-footer {
+        margin-bottom: 30px; /* Espaço extra para não colar no final da tela */
+    }
+    .btn-link {
+        font-size: 1rem; /* Texto um pouco maior para ler melhor */
+        padding: 12px; /* Área de toque maior */
     }
 }

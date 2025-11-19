@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meus-trocados-v2';
+const CACHE_NAME = 'meus-trocados-v3'; // Mudei de v2 para v3 para forçar atualização
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const ASSETS_TO_CACHE = [
 
 // 1. Instalação
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Força o novo SW a assumir imediatamente
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching app shell');
@@ -38,29 +39,21 @@ self.addEventListener('activate', (event) => {
 
 // 3. Interceptação (Cache First)
 self.addEventListener('fetch', (event) => {
-  // Ignora requests que não sejam GET ou que sejam de chrome-extension
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Retorna cache se existir
       if (response) {
         return response;
       }
-      
-      // Se não, busca na rede
       return fetch(event.request).then((networkResponse) => {
-        // Verifica se resposta é válida
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' && networkResponse.type !== 'cors') {
           return networkResponse;
         }
-
-        // Clona e salva no cache
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
-
         return networkResponse;
       }).catch(() => {
         console.log('Sem internet e recurso não cacheado');
