@@ -342,7 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ================== BACKUP JSON AVANÇADO (ITEM 3) ==================
 
-    const exportBackupJSON = () => {
+    // ================== BACKUP JSON AVANÇADO E COMPARTILHAMENTO ==================
+
+    const exportBackupJSON = async () => {
         if (transactions.length === 0 && goals.length === 0) {
             alert("Você não tem dados para salvar ainda.");
             return;
@@ -357,11 +359,35 @@ document.addEventListener('DOMContentLoaded', () => {
             goals: goals
         };
 
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const fileName = `backup_meus_trocados_${new Date().toISOString().slice(0, 10)}.json`;
+        const jsonString = JSON.stringify(backupData, null, 2);
+
+        // Tenta usar a API de Compartilhamento Nativo (Mobile/PWA)
+        if (navigator.canShare && navigator.share) {
+            try {
+                const file = new File([jsonString], fileName, { type: "application/json" });
+                
+                await navigator.share({
+                    title: 'Backup Meus Trocados',
+                    text: `Backup financeiro de ${userName} - ${formatDate(new Date())}`,
+                    files: [file]
+                });
+                
+                console.log('Compartilhamento realizado com sucesso');
+                return; // Se deu certo, para por aqui
+
+            } catch (error) {
+                // Se o usuário cancelar ou der erro, não faz nada ou cai no fallback abaixo
+                console.log('Compartilhamento cancelado ou não suportado, tentando download clássico...', error);
+            }
+        }
+
+        // Fallback: Método Clássico de Download (Desktop ou se falhar o share)
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", `backup_meus_trocados_${new Date().toISOString().slice(0, 10)}.json`);
-        document.body.appendChild(downloadAnchorNode); // Required for firefox
+        downloadAnchorNode.setAttribute("download", fileName);
+        document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
     };
