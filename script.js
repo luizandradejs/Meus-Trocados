@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentBalanceEl = document.getElementById('current-balance');
     const recentList = document.getElementById('recent-transactions-list');
     const emptyRecentState = document.getElementById('empty-recent-state');
-    // NOVO: Seletores para os cards clicáveis
     const incomeCard = document.getElementById('income-card');
     const expenseCard = document.getElementById('expense-card');
 
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const allList = document.getElementById('all-transactions-list');
     const emptyAllState = document.getElementById('empty-all-state');
     const categoryFilter = document.getElementById('category-filter'); 
-    // NOVO: Botão de Download
     const downloadTransactionsBtn = document.getElementById('download-transactions-btn');
     
     // --- Elementos de Gráficos (Canvas) ---
@@ -43,11 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const openModalBtn = document.getElementById('open-transaction-modal');
     const closeModalBtn = document.getElementById('close-transaction-modal');
     const transactionForm = document.getElementById('transaction-form');
-    const radioIncome = document.getElementById('radio-income'); // NOVO: para pré-seleção
-    const radioExpense = document.getElementById('radio-expense'); // NOVO: para pré-seleção
+    const radioIncome = document.getElementById('radio-income'); 
+    const radioExpense = document.getElementById('radio-expense'); 
     const descriptionInput = document.getElementById('description');
     const amountInput = document.getElementById('amount');
-    const categoryInput = document.getElementById('category');
+    const categoryInput = document.getElementById('category'); // Agora é o input de texto com datalist
+    const categoryDataList = document.getElementById('category-options'); // NOVO: Elemento datalist para sugestões
 
     // --- Elementos de Tema ---
     const themeToggle = document.getElementById('theme-toggle');
@@ -83,6 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let transactions = JSON.parse(localStorage.getItem('meus-trocados-transactions')) || [];
     let goals = JSON.parse(localStorage.getItem('meus-trocados-goals')) || [];
     let userName = localStorage.getItem('meus-trocados-username') || 'Colega';
+    
+    // NOVO: Categorias padrão para o Datalist
+    const DEFAULT_CATEGORIES = [
+        'Salário', 'Investimentos', 'Freelance', 
+        'Alimentação', 'Transporte', 'Moradia', 'Saúde', 
+        'Educação', 'Lazer', 'Contas', 'Outras Despesas', 'Outras Receitas'
+    ];
 
     const saveTransactions = () => {
         localStorage.setItem('meus-trocados-transactions', JSON.stringify(transactions));
@@ -106,13 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Date(dateString).toLocaleDateString('pt-BR', options);
     };
 
-    // NOVO: Função para formatar data e hora de forma mais completa (para o CSV)
     const formatDateTimeCSV = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
     }
     
-    // Função utilitária para obter a cor de fundo do tema
     const getBgContent = () => {
         return getComputedStyle(document.body).getPropertyValue('--bg-content').trim();
     };
@@ -147,7 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // Função para alterar o nome através do clique no título
     const handleNameClick = () => {
         const newName = prompt(`Olá, ${userName}! Qual é o novo nome que você gostaria de usar?`);
         if (newName && newName.trim() !== "") {
@@ -179,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.length === 0) {
             listElement.innerHTML = '';
-            // Usa o seletor mais genérico para suportar todos os .content-block
             const emptyState = listElement.parentNode.querySelector('.empty-state');
             if (emptyState) emptyState.classList.add('show');
             return;
@@ -194,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const iconClass = t.type === 'income' ? 'ph-arrow-circle-up' : 'ph-arrow-circle-down';
             const typeClass = t.type === 'income' ? 'income' : 'expense';
-            const dateAndCategory = `${t.category} - ${formatDate(t.date)}`; // Texto para mobile
+            const dateAndCategory = `${t.category} - ${formatDate(t.date)}`; 
 
             li.innerHTML = `
                 <div class="list-icon ${typeClass}">
@@ -221,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             description: description,
             amount: parseFloat(amount),
             type: type,
-            category: category,
+            category: category.trim(), // Garante que a categoria seja limpa
             date: new Date().toISOString(),
         };
         transactions.unshift(newTransaction);
@@ -245,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = document.querySelector('input[name="type"]:checked').value;
         const description = descriptionInput.value.trim();
         const amount = parseFloat(amountInput.value);
-        const category = categoryInput.value.trim();
+        const category = categoryInput.value.trim(); // Pega o valor do input de texto (datalist)
         
         if (description && amount > 0 && category) {
             addTransaction(description, amount, type, category);
@@ -259,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // NOVO: Função para abrir o modal de transação e pré-selecionar o tipo
     const openTransactionModal = (type = 'income') => {
         if (type === 'expense') {
             radioExpense.checked = true;
@@ -279,16 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const headers = ["Data", "Tipo", "Descricao", "Categoria", "Valor"];
         const csvRows = [];
-        csvRows.push(headers.join(';')); // Adiciona cabeçalho
+        csvRows.push(headers.join(';')); 
 
         transactions.forEach(t => {
-            // Formata os dados para o CSV. Usa ponto no valor para consistência de planilha, mas usa a vírgula como separador decimal.
             const amountFormatted = t.amount.toFixed(2).replace('.', ','); 
             const typeText = t.type === 'income' ? 'RECEITA' : 'DESPESA';
             const row = [
                 `"${formatDateTimeCSV(t.date)}"`,
                 `"${typeText}"`,
-                `"${t.description.replace(/"/g, '""')}"`, // Escapa aspas
+                `"${t.description.replace(/"/g, '""')}"`, 
                 `"${t.category.replace(/"/g, '""')}"`,
                 amountFormatted
             ];
@@ -297,14 +297,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const csvString = csvRows.join('\n');
         
-        // Cria um Blob e faz o download
-        const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' }); // \uFEFF para garantir o encoding UTF-8 no Excel
+        const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' }); 
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.setAttribute('href', url);
         a.setAttribute('download', `extrato_meus_trocados_${new Date().toISOString().slice(0, 10)}.csv`);
         
-        // Simula o clique
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -324,7 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyGoalsState.classList.remove('show');
 
         goals.forEach(goal => {
-            const currentAmount = goal.history.reduce((sum, item) => sum + item.amount, 0);
+            // A redução agora funciona porque o valor de 'withdraw' é negativo
+            const currentAmount = goal.history.reduce((sum, item) => sum + item.amount, 0); 
             const percentage = Math.min(100, (currentAmount / goal.target) * 100);
             const isCompleted = currentAmount >= goal.target;
 
@@ -408,13 +407,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // CORREÇÃO AQUI: Armazena valor negativo se for 'withdraw'
     const manageGoalAmount = (goalId, type, amount) => {
         const goal = goals.find(g => g.id === goalId);
         if (!goal) return false;
+        
+        // NOVO: Converte amount para negativo se type for 'withdraw'
+        const finalAmount = type === 'withdraw' ? -parseFloat(amount) : parseFloat(amount);
 
         goal.history.push({
-            type: type,
-            amount: parseFloat(amount),
+            type: type, 
+            amount: finalAmount, // Usa o valor assinado
             date: new Date().toISOString(),
         });
 
@@ -468,6 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // CORREÇÃO AQUI: Exibe o valor em módulo, mas usa o tipo para rótulo/cor
     const renderGoalHistory = (goal) => {
         historyListContent.innerHTML = '';
         
@@ -480,13 +484,19 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => new Date(b.date) - new Date(a.date)) 
             .forEach(item => {
                 const li = document.createElement('li');
-                const typeClass = item.type === 'add' ? 'addition' : 'withdrawal';
-                const typeText = item.type === 'add' ? 'Adição' : 'Retirada';
+                
+                // NOVO: Determina o tipo e cor pelo sinal do amount
+                const isAddition = item.amount >= 0; 
+                const typeClass = isAddition ? 'addition' : 'withdrawal';
+                const typeText = isAddition ? 'Adição' : 'Retirada';
+
+                // Exibe o valor absoluto para a visualização
+                const displayAmount = Math.abs(item.amount); 
 
                 li.className = typeClass;
                 li.innerHTML = `
                     <span>${formatDate(item.date)} (${typeText})</span>
-                    <strong class="${typeClass}">${formatCurrency(item.amount)}</strong>
+                    <strong class="${typeClass}">${formatCurrency(displayAmount)}</strong>
                 `;
                 historyListContent.appendChild(li);
             });
@@ -494,17 +504,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ================== FUNÇÕES DE FILTRO E UI ==================
 
-    const getUniqueCategories = () => {
-        const categories = transactions.map(t => t.category.toLowerCase());
-        return ['Todas as Categorias', ...new Set(categories)].map(cat => ({
-            value: cat === 'todas as categorias' ? 'all' : cat,
+    // NOVO: Função para obter categorias únicas (com defaults e formatação)
+    const getUniqueCategories = (includeDefaults = false) => {
+        let categories = transactions.map(t => t.category.toLowerCase());
+        
+        if (includeDefaults) {
+            // Adiciona as categorias padrão, convertidas para minúsculas
+            const defaultLower = DEFAULT_CATEGORIES.map(c => c.toLowerCase());
+            categories = [...categories, ...defaultLower];
+        }
+        
+        // Remove duplicatas, ordena e formata para exibição
+        return [...new Set(categories)].filter(cat => cat.trim() !== '').sort().map(cat => ({
+            value: cat,
             label: cat.charAt(0).toUpperCase() + cat.slice(1)
         }));
     };
 
+
     const populateCategoryFilter = () => {
-        const categories = getUniqueCategories();
-        categoryFilter.innerHTML = '';
+        // Inclui as categorias padrão no filtro de Extrato
+        const categories = getUniqueCategories(true); 
+
+        categoryFilter.innerHTML = '<option value="all">Todas as Categorias</option>';
         categories.forEach(cat => {
             const option = document.createElement('option');
             option.value = cat.value;
@@ -512,6 +534,21 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryFilter.appendChild(option);
         });
     };
+
+    // NOVO: Função para popular o datalist de categorias
+    const populateCategoryDataList = () => {
+        // Inclui as categorias padrão e as existentes para sugestões
+        const categories = getUniqueCategories(true); 
+        
+        categoryDataList.innerHTML = '';
+
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.label; 
+            categoryDataList.appendChild(option);
+        });
+    };
+
 
     const filterTransactions = () => {
         const selectedCategory = categoryFilter.value;
@@ -525,12 +562,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // ================== FUNÇÃO DE GRÁFICOS (IMPLEMENTAÇÃO CHART.JS) ==================
 
     const renderCharts = () => {
+        // ... (lógica de gráficos mantida do original)
+        // O código foi omitido para manter a concisão, mas permanece inalterado.
+        
         // --- Gráfico 1: Despesas por Categoria (Rosca/Doughnut) ---
         const expenseData = transactions.filter(t => t.type === 'expense' && t.amount > 0);
         
         if (expenseData.length === 0) {
             categoryChartCanvas.style.display = 'none';
             emptyChartCategory.classList.add('show');
+            if (categoryChartInstance) categoryChartInstance.destroy(); 
         } else {
             categoryChartCanvas.style.display = 'block';
             emptyChartCategory.classList.remove('show');
@@ -544,7 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const labels = Object.keys(categories);
             const data = Object.values(categories);
             
-            // Gerar cores dinâmicas e baseadas no tema
             const colors = ['#A45EFF', '#EF4444', '#22C55E', '#FFC107', '#00BCD4', '#F44336', '#9C27B0', '#03A9F4', '#FF9800', '#795548', '#607D8B'];
             const backgroundColors = labels.map((_, i) => colors[i % colors.length]);
             const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
@@ -599,7 +639,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const monthlyData = transactions.reduce((acc, t) => {
             const date = new Date(t.date);
-            // Formato 'YYYY-MM' para ordenar corretamente
             const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             
             if (!acc[monthYear]) {
@@ -614,7 +653,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
 
-        // Ordenar as chaves (meses) cronologicamente
         const sortedMonths = Object.keys(monthlyData).sort();
         
         const flowLabels = sortedMonths.map(my => {
@@ -701,8 +739,9 @@ document.addEventListener('DOMContentLoaded', () => {
              renderCharts();
         }
         
-        // Popula filtro
+        // Popula filtro e datalist de categorias
         populateCategoryFilter();
+        populateCategoryDataList(); // NOVO: Popula o datalist
     };
 
     const updateGoalsList = () => {
@@ -724,12 +763,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateGreeting();
             
-            // Renderiza gráficos ao ativar a página
             if (targetId === 'graficos') {
                 renderCharts(); 
             }
             
-            // Fecha o menu no mobile após clicar
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('open');
             }
@@ -740,18 +777,17 @@ document.addEventListener('DOMContentLoaded', () => {
     pageTitle.addEventListener('click', handleNameClick);
 
     // --- Modal Transação ---
-    openModalBtn.addEventListener('click', () => openTransactionModal('income')); // Abre com 'Receita' padrão
+    openModalBtn.addEventListener('click', () => openTransactionModal('income')); 
     closeModalBtn.addEventListener('click', () => { transactionModal.classList.remove('show'); });
     transactionModal.addEventListener('click', (e) => {
         if (e.target === transactionModal) transactionModal.classList.remove('show');
     });
     transactionForm.addEventListener('submit', handleTransactionSubmit);
     
-    // NOVO: Adiciona a funcionalidade de clique nos cards de resumo para abrir o modal
     incomeCard.addEventListener('click', () => openTransactionModal('income'));
     expenseCard.addEventListener('click', () => openTransactionModal('expense'));
     
-    // NOVO: Adiciona a funcionalidade de download CSV
+    // --- Download CSV ---
     downloadTransactionsBtn.addEventListener('click', downloadTransactionsAsCSV);
 
     // --- Deletar Transação ---
@@ -794,7 +830,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
         localStorage.setItem('meus-trocados-theme', theme);
         
-        // Recarrega gráficos ao trocar de tema para aplicar novas cores
         if (document.querySelector('.page.active')?.id === 'graficos') {
              renderCharts();
         }
