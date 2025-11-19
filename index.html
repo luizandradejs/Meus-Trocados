@@ -122,26 +122,6 @@
 
             <section class="page" id="extrato">
                 <div class="page-header">
-                    <h3>Transações & Dados</h3>
-                </div>
-
-                <div class="content-block" style="margin-bottom: 24px; border-color: var(--primary);">
-                    <h4 style="margin-bottom: 12px; color: var(--primary);">💾 Backup Completo & Restauração</h4>
-                    <p style="font-size: 0.9rem; margin-bottom: 16px;">Trocou de celular? Salve um arquivo JSON aqui e restaure no novo aparelho.</p>
-                    
-                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                        <button class="btn btn-secondary" id="backup-export-btn">
-                            <i class="ph ph-floppy-disk"></i> Salvar Backup (JSON)
-                        </button>
-                        
-                        <input type="file" id="backup-import-input" accept=".json" style="display: none;">
-                        <button class="btn btn-secondary" id="backup-import-btn">
-                            <i class="ph ph-arrows-clockwise"></i> Restaurar Backup
-                        </button>
-                    </div>
-                </div>
-
-                <div class="page-header">
                     <h3>Histórico</h3>
                     <div class="filter-container">
                         <label for="category-filter">Filtrar:</label>
@@ -166,6 +146,20 @@
                     </ul>
                     <div class="empty-state" id="empty-all-state">
                         <p>Você ainda não tem nenhuma transação registrada.</p>
+                    </div>
+                </div>
+
+                <div class="backup-footer">
+                    <p>Gerenciamento de Dados JSON</p>
+                    <div class="backup-actions">
+                        <button class="btn-link" id="backup-export-btn">
+                            Salvar Backup
+                        </button>
+                        <span>•</span>
+                        <button class="btn-link" id="backup-import-btn">
+                            Restaurar Backup
+                        </button>
+                        <input type="file" id="backup-import-input" accept=".json" style="display: none;">
                     </div>
                 </div>
             </section>

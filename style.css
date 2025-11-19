@@ -75,8 +75,7 @@ i.ph {
     flex-direction: column;
     gap: 40px;
     transition: background-color 0.3s, border-color 0.3s;
-    /* Propriedades para Mobile - Fixo no Desktop */
-    position: sticky; /* Sticky para que fique fixo ao rolar o conteúdo */
+    position: sticky;
     top: 0;
     height: 100vh;
 }
@@ -119,9 +118,8 @@ i.ph {
     color: var(--primary);
 }
 
-/* NOVO: BOTÃO DO MENU HAMBÚRGUER (SÓ APARECE NO MOBILE) */
 .menu-toggle {
-    display: none; /* Escondido por padrão no Desktop */
+    display: none;
     position: fixed;
     top: 16px;
     left: 16px;
@@ -192,7 +190,6 @@ i.ph {
     box-shadow: 0 4px 12px -2px rgba(164, 94, 255, 0.3);
 }
 
-/* Botão secundário (para histórico e download) */
 .btn-secondary {
     background-color: var(--bg-content);
     color: var(--text-secondary);
@@ -202,7 +199,6 @@ i.ph {
     color: var(--text-primary);
     border-color: var(--text-secondary);
 }
-
 
 .theme-toggle {
     padding: 8px;
@@ -222,10 +218,10 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
 
 /* ================== PÁGINAS (SECTIONS) ================== */
 .page {
-    display: none; /* Escondido por padrão */
+    display: none;
 }
 .page.active {
-    display: block; /* Visível quando ativo */
+    display: block;
 }
 
 /* ================== PAINEL: CARDS DE RESUMO ================== */
@@ -268,8 +264,7 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     border-color: var(--primary);
 }
 
-
-/* ================== BLOCO DE CONTEÚDO (Transações, Gráficos, etc) ================== */
+/* ================== BLOCO DE CONTEÚDO ================== */
 .content-block {
     background-color: var(--bg-content);
     border: 1px solid var(--border);
@@ -296,19 +291,16 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     display: block;
 }
 
-/* NOVO: Estilos para área de Gráficos */
 .chart-area {
-    height: 350px; /* Altura padrão para desktop */
+    height: 350px;
     position: relative;
     padding: 10px;
 }
-/* Garante que o canvas ocupe a altura/largura disponível */
 .chart-area canvas {
     display: block;
     max-width: 100%;
     max-height: 100%;
 }
-
 
 /* ================== LISTA DE TRANSAÇÕES ================== */
 .transaction-list {
@@ -374,7 +366,7 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     color: var(--red);
 }
 
-/* ================== PÁGINA ECONOMIAS (METAS) E EXTRATO ================== */
+/* ================== PÁGINA ECONOMIAS E EXTRATO ================== */
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -486,15 +478,13 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     font-size: 1rem;
 }
 
-/* NOVO: Filtro de Categoria (Página Extrato) */
 .filter-container {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap; 
-    /* Adicionado para garantir que o botão de download fique no mesmo bloco */
     flex-grow: 1; 
-    justify-content: flex-end; /* Alinha o conteúdo à direita no desktop */
+    justify-content: flex-end; 
 }
 .filter-container label {
     font-size: 0.9rem;
@@ -510,16 +500,14 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     font-size: 0.9rem;
     font-weight: 500;
     appearance: none; 
-    flex-grow: 0.5; /* Ajuste para ter espaço para o botão */
+    flex-grow: 0.5; 
     min-width: 180px;
 }
-/* Estilizando o novo botão para ficar bem com o select */
 #download-transactions-btn {
     font-size: 0.9rem;
     padding: 8px 12px;
     flex-shrink: 0;
 }
-
 
 /* ================== MODAL ================== */
 .modal-overlay {
@@ -607,7 +595,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     cursor: pointer;
 }
 
-
 .radio-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -689,7 +676,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     color: var(--red);
 }
 
-/* Estilo para nome clicável */
 #page-title.clickable-name {
     cursor: pointer;
     transition: color 0.2s;
@@ -699,40 +685,75 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     text-decoration: underline dashed 1px;
 }
 
-/* ================== LAYOUT MOBILE (MAX 768px) ================== */
+/* ================== RODAPÉ DISCRETO (BACKUP) ================== */
+.backup-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+.backup-footer p {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin: 0;
+}
+.backup-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+.backup-actions span {
+    color: var(--border);
+}
+.btn-link {
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.8;
+    transition: all 0.2s;
+}
+.btn-link:hover {
+    color: var(--primary);
+    opacity: 1;
+}
 
+
+/* ================== LAYOUT MOBILE (MAX 768px) ================== */
 @media (max-width: 768px) {
-    
-    /* 1. LAYOUT PRINCIPAL E BARRA LATERAL (Off-canvas) */
     .app-container {
-        grid-template-columns: 1fr; /* Apenas uma coluna de conteúdo */
+        grid-template-columns: 1fr; 
     }
     
     .sidebar {
-        position: fixed; /* Fixo para deslizar sobre o conteúdo */
-        transform: translateX(-100%); /* Esconde fora da tela */
+        position: fixed; 
+        transform: translateX(-100%); 
         transition: transform 0.3s ease-in-out;
-        width: 260px; /* Largura padrão */
+        width: 260px; 
         z-index: 500;
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.7);
     }
     .sidebar.open {
-        transform: translateX(0); /* Mostra a sidebar */
+        transform: translateX(0); 
     }
 
-    /* 2. BOTÃO HAMBÚRGUER */
     .menu-toggle {
-        display: block; /* Mostra o botão hambúrguer */
+        display: block; 
     }
     
-    /* 3. CONTEÚDO PRINCIPAL E HEADER */
     .main-content {
-        padding: 20px 16px; /* Diminui o padding */
-        padding-top: 70px; /* Adiciona espaço para o botão do menu */
+        padding: 20px 16px; 
+        padding-top: 70px; 
     }
 
     .main-header {
-        /* Garante que o header se ajuste bem */
         grid-template-columns: 1fr auto;
         grid-template-areas: 
             "title actions"
@@ -745,7 +766,6 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
     }
     
     .header-actions {
-        /* Centraliza as ações no mobile */
         grid-column: 2 / 3;
         grid-row: 1 / 3;
         flex-direction: column; 
@@ -757,16 +777,13 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
         padding: 8px 12px;
     }
     
-    /* 4. CARDS DE RESUMO */
     .summary-cards {
-        grid-template-columns: 1fr; /* Cards empilhados */
+        grid-template-columns: 1fr; 
         gap: 16px;
     }
 
-    /* 5. LISTA DE TRANSAÇÕES */
     .transaction-list li {
-        /* Ajusta o grid para 2 linhas no mobile */
-        grid-template-columns: auto 1fr auto; /* Ícone | Descrição | Valor/Lixeira */
+        grid-template-columns: auto 1fr auto; 
         grid-template-areas: 
             "icon description delete"
             "icon category amount";
@@ -782,7 +799,7 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
         grid-area: description;
     }
     .list-description small {
-        display: none; /* Esconde Categoria/Data da linha principal */
+        display: none; 
     }
     .list-amount {
         grid-area: amount;
@@ -794,33 +811,26 @@ body.light-mode .theme-toggle .ph-moon { display: none; }
         align-self: flex-start;
     }
     
-    /* 6. PÁGINAS METAS E EXTRATO */
     .goals-list {
         grid-template-columns: 1fr;
     }
     .goal-card-actions {
-        /* Ações em 100% de largura */
         grid-template-columns: 1fr;
     }
     
-    /* 7. GRÁFICOS */
     .chart-area {
-        height: 300px; /* Altura menor no mobile */
+        height: 300px; 
     }
 
-    /* 8. AJUSTE DO FILTRO NO MOBILE */
     .filter-container {
-        /* Permite que os elementos se ajustem melhor no mobile */
         justify-content: flex-start;
     }
     .filter-container select, #download-transactions-btn {
-        /* Ocupa a largura total para melhor clique */
         width: 100%; 
         flex-grow: 1;
         min-width: unset;
     }
     .filter-container label {
-        /* Ocupa a largura total */
         width: 100%; 
     }
 }
