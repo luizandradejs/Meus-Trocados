@@ -1,21 +1,66 @@
 {
-  "name": "Meus Trocados",
-  "short_name": "Trocados",
+  "name": "Meus Trocados - Gestão Financeira",
+  "short_name": "Meus Trocados",
+  "description": "Aplicativo completo de gestão financeira pessoal com rastreamento de transações, metas de economia e análises visuais.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#100E19",
   "theme_color": "#A45EFF",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity"],
+  "lang": "pt-BR",
+  "dir": "ltr",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nova Transação",
+      "short_name": "Transação",
+      "description": "Adicionar nova receita ou despesa",
+      "url": "./index.html?action=new-transaction",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Minhas Metas",
+      "short_name": "Metas",
+      "description": "Ver metas de economia",
+      "url": "./index.html?page=economias",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text"
+    }
+  }
 }
